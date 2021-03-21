@@ -11,14 +11,21 @@ from Player import *
 HEADER = 64
 PORT = 5050
 FORMAT = 'utf-8'
+# usage in send() function will disconnect from serwer
 DISCONNECT_MESSAGE = "!DISCONNECT"
+# server ip adress
 SERVER = "192.168.137.1"
 ADDR = (SERVER, PORT)
+# player(account) username for further use
 username = ""
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
+# list of elements to destroy
 graphics_elements = []
+# List for character creation use
 character_customization = []
+# dict for sending pickles with class object parameters
+player_class_dictionary_global = {}
 # main window setup
 WIDTH = ctypes.windll.user32.GetSystemMetrics(0)
 HEIGHT = ctypes.windll.user32.GetSystemMetrics(1)
@@ -26,191 +33,198 @@ root = tk.Tk()
 root.state("zoomed")
 root.geometry(f'{WIDTH}x{HEIGHT}')
 root.title('Samurai no jikan')
+# Clans dictionary used for function character_clan_answer_logic which chose class in time of first login
 clans_dictionary_with_answers = {"Raitoningu": {"firstquestion": 1,
-                                                "name":"Raitoningu",
+                                                "name": "Raitoningu",
                                                 "secondquestion": 1,
                                                 "thirdquestion": 1,
                                                 "fourthquestion": 1},
                                  "Same": {"firstquestion": 1,
-                                                "name": "Same",
-                                                "secondquestion": 1,
-                                                "thirdquestion": 2,
-                                                "fourthquestion": 1},
+                                          "name": "Same",
+                                          "secondquestion": 1,
+                                          "thirdquestion": 2,
+                                          "fourthquestion": 1},
                                  "Chimamire no kiri": {"firstquestion": 1,
-                                                "name": "Chimamire no kiri",
-                                                "secondquestion": 1,
-                                                "thirdquestion": 1,
-                                                "fourthquestion": 2},
+                                                       "name": "Chimamire no kiri",
+                                                       "secondquestion": 1,
+                                                       "thirdquestion": 1,
+                                                       "fourthquestion": 2},
                                  "Mizunoken": {"firstquestion": 1,
-                                                "name": "Mizunoken",
-                                                "secondquestion": 1,
-                                                "thirdquestion": 2,
-                                                "fourthquestion": 2},
+                                               "name": "Mizunoken",
+                                               "secondquestion": 1,
+                                               "thirdquestion": 2,
+                                               "fourthquestion": 2},
                                  "Tekondō": {"firstquestion": 1,
-                                                "name": "Tekondō",
-                                                "secondquestion": 2,
-                                                "thirdquestion": 1,
-                                                "fourthquestion": 1},
+                                             "name": "Tekondō",
+                                             "secondquestion": 2,
+                                             "thirdquestion": 1,
+                                             "fourthquestion": 1},
                                  "Jakkaru": {"firstquestion": 1,
-                                                "name": "Jakkaru",
-                                                "secondquestion": 2,
-                                                "thirdquestion": 2,
-                                                "fourthquestion": 1},
+                                             "name": "Jakkaru",
+                                             "secondquestion": 2,
+                                             "thirdquestion": 2,
+                                             "fourthquestion": 1},
                                  "Kin'iro no me": {"firstquestion": 1,
-                                                "name": "Kin'iro no me",
-                                                "secondquestion": 2,
-                                                "thirdquestion": 1,
-                                                "fourthquestion": 2},
+                                                   "name": "Kin'iro no me",
+                                                   "secondquestion": 2,
+                                                   "thirdquestion": 1,
+                                                   "fourthquestion": 2},
                                  "Doku": {"firstquestion": 1,
-                                                "name": "Doku",
-                                                "secondquestion": 2,
-                                                "thirdquestion": 2,
-                                                "fourthquestion": 2},
+                                          "name": "Doku",
+                                          "secondquestion": 2,
+                                          "thirdquestion": 2,
+                                          "fourthquestion": 2},
                                  "Shibō": {"firstquestion": 2,
-                                                "name": "Shibō",
-                                                "secondquestion": 1,
-                                                "thirdquestion": 1,
-                                                "fourthquestion": 1},
+                                           "name": "Shibō",
+                                           "secondquestion": 1,
+                                           "thirdquestion": 1,
+                                           "fourthquestion": 1},
                                  "Chikaku-teki": {"firstquestion": 2,
-                                                "name": "Chikaku-teki",
-                                                "secondquestion": 1,
-                                                "thirdquestion": 2,
-                                                "fourthquestion": 1},
+                                                  "name": "Chikaku-teki",
+                                                  "secondquestion": 1,
+                                                  "thirdquestion": 2,
+                                                  "fourthquestion": 1},
                                  "Atsuryoku-ten": {"firstquestion": 2,
-                                                "name": "Atsuryoku-ten",
-                                                "secondquestion": 1,
-                                                "thirdquestion": 1,
-                                                "fourthquestion": 2},
+                                                   "name": "Atsuryoku-ten",
+                                                   "secondquestion": 1,
+                                                   "thirdquestion": 1,
+                                                   "fourthquestion": 2},
                                  "Inu no tomodachi": {"firstquestion": 2,
-                                                "name": "Inu no tomodachi",
-                                                "secondquestion": 1,
-                                                "thirdquestion": 2,
-                                                "fourthquestion": 2},
+                                                      "name": "Inu no tomodachi",
+                                                      "secondquestion": 1,
+                                                      "thirdquestion": 2,
+                                                      "fourthquestion": 2},
                                  "Hakushoku hikari": {"firstquestion": 2,
-                                                "name": "Hakushoku hikari",
-                                                "secondquestion": 2,
-                                                "thirdquestion": 1,
-                                                "fourthquestion": 1},
+                                                      "name": "Hakushoku hikari",
+                                                      "secondquestion": 2,
+                                                      "thirdquestion": 1,
+                                                      "fourthquestion": 1},
                                  "Wāmu": {"firstquestion": 2,
-                                                "name": "Wāmu",
-                                                "secondquestion": 2,
-                                                "thirdquestion": 2,
-                                                "fourthquestion": 1},
+                                          "name": "Wāmu",
+                                          "secondquestion": 2,
+                                          "thirdquestion": 2,
+                                          "fourthquestion": 1},
                                  "Hen'i-tai": {"firstquestion": 2,
-                                                "name": "Hen'i-tai",
-                                                "secondquestion": 2,
-                                                "thirdquestion": 2,
-                                                "fourthquestion": 2},
+                                               "name": "Hen'i-tai",
+                                               "secondquestion": 2,
+                                               "thirdquestion": 2,
+                                               "fourthquestion": 2},
                                  "Shinkō": {"firstquestion": 2,
-                                                "name": "Shinkō",
-                                                "secondquestion": 2,
-                                                "thirdquestion": 1,
-                                                "fourthquestion": 2},
+                                            "name": "Shinkō",
+                                            "secondquestion": 2,
+                                            "thirdquestion": 1,
+                                            "fourthquestion": 2},
                                  "Ningyō": {"firstquestion": 3,
-                                                "name": "Ningyō",
-                                                "secondquestion": 1,
-                                                "thirdquestion": 1,
-                                                "fourthquestion": 1},
+                                            "name": "Ningyō",
+                                            "secondquestion": 1,
+                                            "thirdquestion": 1,
+                                            "fourthquestion": 1},
                                  "Kusuri": {"firstquestion": 3,
-                                                "name": "Kusuri",
-                                                "secondquestion": 1,
-                                                "thirdquestion": 2,
-                                                "fourthquestion": 1},
+                                            "name": "Kusuri",
+                                            "secondquestion": 1,
+                                            "thirdquestion": 2,
+                                            "fourthquestion": 1},
                                  "Shadouasashin": {"firstquestion": 3,
-                                                "name": "Shadouasashin",
-                                                "secondquestion": 1,
-                                                "thirdquestion": 1,
-                                                "fourthquestion": 2},
+                                                   "name": "Shadouasashin",
+                                                   "secondquestion": 1,
+                                                   "thirdquestion": 1,
+                                                   "fourthquestion": 2},
                                  "Kōri": {"firstquestion": 3,
-                                                "name": "Kōri",
-                                                "secondquestion": 1,
-                                                "thirdquestion": 2,
-                                                "fourthquestion": 2},
+                                          "name": "Kōri",
+                                          "secondquestion": 1,
+                                          "thirdquestion": 2,
+                                          "fourthquestion": 2},
                                  "Ketsueki": {"firstquestion": 3,
-                                                "name": "Ketsueki",
-                                                "secondquestion": 2,
-                                                "thirdquestion": 1,
-                                                "fourthquestion": 1},
+                                              "name": "Ketsueki",
+                                              "secondquestion": 2,
+                                              "thirdquestion": 1,
+                                              "fourthquestion": 1},
                                  "Shinrin": {"firstquestion": 3,
-                                                "name": "Shinrin",
-                                                "secondquestion": 2,
-                                                "thirdquestion": 2,
-                                                "fourthquestion": 1},
+                                             "name": "Shinrin",
+                                             "secondquestion": 2,
+                                             "thirdquestion": 2,
+                                             "fourthquestion": 1},
                                  "Hagane": {"firstquestion": 3,
-                                                "name": "Hagane",
-                                                "secondquestion": 2,
-                                                "thirdquestion": 1,
-                                                "fourthquestion": 2},
+                                            "name": "Hagane",
+                                            "secondquestion": 2,
+                                            "thirdquestion": 1,
+                                            "fourthquestion": 2},
                                  "Maguneshiumu": {"firstquestion": 3,
-                                                "name": "Maguneshiumu",
-                                                "secondquestion": 2,
-                                                "thirdquestion": 2,
-                                                "fourthquestion": 2},
+                                                  "name": "Maguneshiumu",
+                                                  "secondquestion": 2,
+                                                  "thirdquestion": 2,
+                                                  "fourthquestion": 2},
                                  "Kopī": {"firstquestion": 4,
-                                                "name": "Kopī",
-                                                "secondquestion": 1,
-                                                "thirdquestion": 1,
-                                                "fourthquestion": 1},
+                                          "name": "Kopī",
+                                          "secondquestion": 1,
+                                          "thirdquestion": 1,
+                                          "fourthquestion": 1},
                                  "Kage no senshi": {"firstquestion": 4,
-                                                "name": "Kage no senshi",
-                                                "secondquestion": 1,
-                                                "thirdquestion": 2,
-                                                "fourthquestion": 1},
+                                                    "name": "Kage no senshi",
+                                                    "secondquestion": 1,
+                                                    "thirdquestion": 2,
+                                                    "fourthquestion": 1},
                                  "Mippei suru": {"firstquestion": 4,
-                                                "name": "Mippei suru",
-                                                "secondquestion": 1,
-                                                "thirdquestion": 1,
-                                                "fourthquestion": 2},
+                                                 "name": "Mippei suru",
+                                                 "secondquestion": 1,
+                                                 "thirdquestion": 1,
+                                                 "fourthquestion": 2},
                                  "Maindo": {"firstquestion": 4,
-                                                "name": "Maindo",
-                                                "secondquestion": 1,
-                                                "thirdquestion": 2,
-                                                "fourthquestion": 2},
+                                            "name": "Maindo",
+                                            "secondquestion": 1,
+                                            "thirdquestion": 2,
+                                            "fourthquestion": 2},
                                  "Arashi": {"firstquestion": 4,
-                                                "name": "Arashi",
-                                                "secondquestion": 2,
-                                                "thirdquestion": 1,
-                                                "fourthquestion": 1},
+                                            "name": "Arashi",
+                                            "secondquestion": 2,
+                                            "thirdquestion": 1,
+                                            "fourthquestion": 1},
                                  "Taimatsu": {"firstquestion": 4,
-                                                "name": "Taimatsu",
-                                                "secondquestion": 2,
-                                                "thirdquestion": 2,
-                                                "fourthquestion": 1},
+                                              "name": "Taimatsu",
+                                              "secondquestion": 2,
+                                              "thirdquestion": 2,
+                                              "fourthquestion": 1},
                                  "Shizen": {"firstquestion": 4,
-                                                "name": "Shizen",
-                                                "secondquestion": 2,
-                                                "thirdquestion": 1,
-                                                "fourthquestion": 2},
+                                            "name": "Shizen",
+                                            "secondquestion": 2,
+                                            "thirdquestion": 1,
+                                            "fourthquestion": 2},
                                  "Kemuri": {"firstquestion": 4,
-                                                "name": "Kemuri",
-                                                "secondquestion": 2,
-                                                "thirdquestion": 2,
-                                                "fourthquestion": 2},
+                                            "name": "Kemuri",
+                                            "secondquestion": 2,
+                                            "thirdquestion": 2,
+                                            "fourthquestion": 2},
                                  "Hikari": {"firstquestion": 4,
-                                                "name": "Hikari",
-                                                "secondquestion": 2,
-                                                "thirdquestion": 1,
-                                                "fourthquestion": 1},
+                                            "name": "Hikari",
+                                            "secondquestion": 2,
+                                            "thirdquestion": 1,
+                                            "fourthquestion": 1},
                                  "Kumo": {"firstquestion": 4,
-                                                "name": "Kumo",
-                                                "secondquestion": 2,
-                                                "thirdquestion": 2,
-                                                "fourthquestion": 2},
-                                }
+                                          "name": "Kumo",
+                                          "secondquestion": 2,
+                                          "thirdquestion": 2,
+                                          "fourthquestion": 2},
+                                 }
 
-clans_list = ['Raitoningu',"Same","Chimamire no kiri","Mizunoken","Tekondō","Jakkaru","Kin'iro no me","Doku","Shibō","Chikaku-teki","Atsuryoku-ten","Inu no tomodachi","Wāmu","Hakushoku hikari","Hen'i-tai","Shinkō","Ningyō","Kusuri","Shadouasashin","Kōri","Ketsueki","Shinrin","Hagane","Maguneshiumu","Kopī","Kage no senshi","Mippei suru","Maindo","Arashi","Taimatsu","Shizen","Kemuri","Hikari","Kumo"]
+# lists used to choice the class in character_clans_answer_logic
+clans_list = ['Raitoningu', "Same", "Chimamire no kiri", "Mizunoken", "Tekondō", "Jakkaru", "Kin'iro no me", "Doku",
+              "Shibō", "Chikaku-teki", "Atsuryoku-ten", "Inu no tomodachi", "Wāmu", "Hakushoku hikari", "Hen'i-tai",
+              "Shinkō", "Ningyō", "Kusuri", "Shadouasashin", "Kōri", "Ketsueki", "Shinrin", "Hagane", "Maguneshiumu",
+              "Kopī", "Kage no senshi", "Mippei suru", "Maindo", "Arashi", "Taimatsu", "Shizen", "Kemuri", "Hikari",
+              "Kumo"]
 clans_list_after_first_question = []
 clans_list_after_second_question = []
 clans_list_after_third_question = []
 clans_list_after_fourth_question = []
 
-# tab for change textfield
+
+# thanks to that using "tab" change the widget insted of making space
 def focus_next_widget(event):
     event.widget.tk_focusNext().focus()
     return ("break")
 
 
-# comunication with server
+# comunication with server sending message and comented line is for taking responds
 def send(msg):
     message = msg.encode(FORMAT)
     msg_length = len(message)
@@ -218,10 +232,14 @@ def send(msg):
     send_length += b' ' * (HEADER - len(send_length))
     client.send(send_length)
     client.send(message)
-    #server_respond = (client.recv(2048).decode(FORMAT))
-    #print(server_respond)
-# character answers based generator
-def character_clan_answers_logic(first_question_answer,second_question_answer,third_question_answer,fourth_question_answer):
+    # server_respond = (client.recv(2048).decode(FORMAT))
+    # print(server_respond)
+
+
+# first time login - character class choice system
+def character_clan_answers_logic(first_question_answer, second_question_answer, third_question_answer,
+                                 fourth_question_answer):
+    # dependence of user choice in 4 questions, funcion will update lists and make choice of final clan
     character_clan_answers_logic_checker = 0
     first_question = first_question_answer
     second_question = second_question_answer
@@ -246,55 +264,78 @@ def character_clan_answers_logic(first_question_answer,second_question_answer,th
     if second_question == "1":
         for i in range(len(clans_list_after_first_question)):
             if clans_dictionary_with_answers[clans_list_after_first_question[i]]["secondquestion"] == 1:
-                clans_list_after_second_question.append(clans_dictionary_with_answers[clans_list_after_first_question[i]]["name"])
+                clans_list_after_second_question.append(
+                    clans_dictionary_with_answers[clans_list_after_first_question[i]]["name"])
     if second_question == "2":
         for i in range(len(clans_list_after_first_question)):
             if clans_dictionary_with_answers[clans_list_after_first_question[i]]["secondquestion"] == 2:
-                clans_list_after_second_question.append(clans_dictionary_with_answers[clans_list_after_first_question[i]]["name"])
+                clans_list_after_second_question.append(
+                    clans_dictionary_with_answers[clans_list_after_first_question[i]]["name"])
     if third_question == "1":
         for i in range(len(clans_list_after_second_question)):
             if clans_dictionary_with_answers[clans_list_after_second_question[i]]["thirdquestion"] == 1:
-                clans_list_after_third_question.append(clans_dictionary_with_answers[clans_list_after_second_question[i]]["name"])
+                clans_list_after_third_question.append(
+                    clans_dictionary_with_answers[clans_list_after_second_question[i]]["name"])
     if third_question == "2":
         for i in range(len(clans_list_after_second_question)):
             if clans_dictionary_with_answers[clans_list_after_second_question[i]]["thirdquestion"] == 2:
-                clans_list_after_third_question.append(clans_dictionary_with_answers[clans_list_after_second_question[i]]["name"])
+                clans_list_after_third_question.append(
+                    clans_dictionary_with_answers[clans_list_after_second_question[i]]["name"])
     if fourth_question == "1":
         for i in range(len(clans_list_after_third_question)):
             if clans_dictionary_with_answers[clans_list_after_third_question[i]]["fourthquestion"] == 1:
-                clans_list_after_fourth_question.append(clans_dictionary_with_answers[clans_list_after_third_question[i]]["name"])
-                character_clan_answers_logic_checker=1
+                clans_list_after_fourth_question.append(
+                    clans_dictionary_with_answers[clans_list_after_third_question[i]]["name"])
+                character_clan_answers_logic_checker = 1
     if fourth_question == "2":
         for i in range(len(clans_list_after_third_question)):
             if clans_dictionary_with_answers[clans_list_after_third_question[i]]["fourthquestion"] == 2:
-                clans_list_after_fourth_question.append(clans_dictionary_with_answers[clans_list_after_third_question[i]]["name"])
-                character_clan_answers_logic_checker =1
-
+                clans_list_after_fourth_question.append(
+                    clans_dictionary_with_answers[clans_list_after_third_question[i]]["name"])
+                character_clan_answers_logic_checker = 1
+    # when everything works fine that is final step which generate final class and send information to server
     if character_clan_answers_logic_checker == 1:
+        # chose finall class
         final_first_clan = random.choice(clans_list_after_fourth_question)
         print("your class is: " + final_first_clan)
+        # send class to the server
         send("first clan &" + final_first_clan)
+        # take respond from server which provide full Player object for this client(username)
         server_respond = (client.recv(2048))
         smth = pickle.loads(server_respond)
         print(smth)
-        somedictionary = (vars(smth))
-        print(somedictionary["name"])
-# buttons commands
+        # save loaded player object values in dictionary for further use
+        player_class_dictionary = (vars(smth))
+        print(player_class_dictionary)
+        print(player_class_dictionary["map"])
+        # destroy the graphic window
+        destroy_graphic_elements()
+        # fill the player_class_dictionary_global with recived class object dictionary
+        for key in player_class_dictionary:
+            player_class_dictionary_global[key] = player_class_dictionary[key]
+        # open main game loop
+        main_game_loop()
+
+
+
+# destroy graphics elements included in graphics_elemts list
 def destroy_graphic_elements():
     for i in range(len(graphics_elements)):
         graphics_elements[i].destroy()
         i += 1
 
+
+# open second question window in character creation
 def second_question_window():
     question_menu_background_image = Image.open('assets/character_creation_background_question2.png')
     question_menu_background_image = question_menu_background_image.resize((WIDTH, HEIGHT), Image.ANTIALIAS)
     resized_first_question_background_resized = ImageTk.PhotoImage(question_menu_background_image)
-    backgroundFirstQuestionLabel = tk.Label(root, image=resized_first_question_background_resized)
-    backgroundFirstQuestionLabel.place(x=0, y=0)
-    firstAsnwerButton = Button(root, text="thief", padx=40, pady=9,
+    background_first_question_label = tk.Label(root, image=resized_first_question_background_resized)
+    background_first_question_label.place(x=0, y=0)
+    first_asnwer_button = Button(root, text="thief", padx=40, pady=9,
                                command=lambda: get_1_answer_2_question_button_command(), bg="#439f9c")
-    firstAsnwerButton.pack()
-    firstAsnwerButton.place(x=550, y=150)
+    first_asnwer_button.pack()
+    first_asnwer_button.place(x=550, y=150)
     secondAnswerButton = Button(root, text="dog trainer", padx=40, pady=9,
                                 command=lambda: get_2_answer_2_question_button_command(), bg="#439f9c")
     secondAnswerButton.pack()
@@ -307,13 +348,15 @@ def second_question_window():
                                 command=lambda: get_4_answer_2_question_button_command(), bg="#439f9c")
     fourthAnswerButton.pack()
     fourthAnswerButton.place(x=550, y=450)
-    graphics_elements.append(firstAsnwerButton)
+    graphics_elements.append(first_asnwer_button)
     graphics_elements.append(thirdAnswerButton)
     graphics_elements.append(secondAnswerButton)
     graphics_elements.append(fourthAnswerButton)
-    graphics_elements.append(backgroundFirstQuestionLabel)
+    graphics_elements.append(background_first_question_label)
     root.mainloop()
 
+
+# open first question window in character creation
 def first_question_window():
     question_menu_background_image = Image.open('assets/character_creation_background_question1.png')
     question_menu_background_image = question_menu_background_image.resize((WIDTH, HEIGHT), Image.ANTIALIAS)
@@ -343,6 +386,8 @@ def first_question_window():
     graphics_elements.append(backgroundFirstQuestionLabel)
     root.mainloop()
 
+
+# open third question window in character creation
 def third_question_window():
     question_menu_background_image = Image.open('assets/character_creation_background_question3.png')
     question_menu_background_image = question_menu_background_image.resize((WIDTH, HEIGHT), Image.ANTIALIAS)
@@ -372,6 +417,8 @@ def third_question_window():
     graphics_elements.append(backgroundFirstQuestionLabel)
     root.mainloop()
 
+
+# open fourth question window in character creation
 def fourth_question_window():
     question_menu_background_image = Image.open('assets/character_creation_background_question4.png')
     question_menu_background_image = question_menu_background_image.resize((WIDTH, HEIGHT), Image.ANTIALIAS)
@@ -400,47 +447,68 @@ def fourth_question_window():
     graphics_elements.append(fourthAnswerButton)
     graphics_elements.append(backgroundFirstQuestionLabel)
     root.mainloop()
+
+
+# button applaying value of 1 answer in first question
 def get_1_answer_1_question_button_command():
     character_customization.append("1")
     destroy_graphic_elements()
     second_question_window()
 
 
+# button applaying value of 2 answer in first question
 def get_2_answer_1_question_button_command():
     character_customization.append("2")
     destroy_graphic_elements()
     second_question_window()
 
+
+# button applaying value of 3 answer in first question
 def get_3_answer_1_question_button_command():
     character_customization.append("3")
     destroy_graphic_elements()
     second_question_window()
 
+
+# button applaying value of 4 answer in first question
 def get_4_answer_1_question_button_command():
     character_customization.append("4")
     destroy_graphic_elements()
     second_question_window()
 
+
+# button applaying value of 1 answer in second question
 def get_1_answer_2_question_button_command():
     character_customization.append("1")
     destroy_graphic_elements()
     third_question_window()
 
 
+# button applaying value of 2 answer in second question
+
 def get_2_answer_2_question_button_command():
     character_customization.append("1")
     destroy_graphic_elements()
     third_question_window()
+
+
+# button applaying value of 3 answer in second question
 
 def get_3_answer_2_question_button_command():
     character_customization.append("2")
     destroy_graphic_elements()
     third_question_window()
 
+
+# button applaying value of 4 answer in second question
+
 def get_4_answer_2_question_button_command():
     character_customization.append("2")
     destroy_graphic_elements()
     third_question_window()
+
+
+# button applaying value of 1 answer in third question
 
 def get_1_answer_3_question_button_command():
     character_customization.append("1")
@@ -448,62 +516,109 @@ def get_1_answer_3_question_button_command():
     fourth_question_window()
 
 
+# button applaying value of 2 answer in third question
+
 def get_2_answer_3_question_button_command():
     character_customization.append("1")
     destroy_graphic_elements()
     fourth_question_window()
+
+
+# button applaying value of 3 answer in third question
 
 def get_3_answer_3_question_button_command():
     character_customization.append("2")
     destroy_graphic_elements()
     fourth_question_window()
 
+
+# button applaying value of 4  answer in third question
+
 def get_4_answer_3_question_button_command():
     character_customization.append("2")
     destroy_graphic_elements()
     fourth_question_window()
 
+
+# button applaying value of 1 answer in fourth question
+
 def get_1_answer_4_question_button_command():
     character_customization.append("1")
-    character_clan_answers_logic(character_customization[0],character_customization[1],character_customization[2],character_customization[3])
+    character_clan_answers_logic(character_customization[0], character_customization[1], character_customization[2],
+                                 character_customization[3])
     destroy_graphic_elements()
 
+
+# button applaying value of 2 answer in fourth question
 
 def get_2_answer_4_question_button_command():
     character_customization.append("1")
-    character_clan_answers_logic(character_customization[0],character_customization[1],character_customization[2],character_customization[3])
+    character_clan_answers_logic(character_customization[0], character_customization[1], character_customization[2],
+                                 character_customization[3])
     destroy_graphic_elements()
+
+
+# button applaying value of 3 answer in fourth question
 
 def get_3_answer_4_question_button_command():
     character_customization.append("2")
-    character_clan_answers_logic(character_customization[0],character_customization[1],character_customization[2],character_customization[3])
+    character_clan_answers_logic(character_customization[0], character_customization[1], character_customization[2],
+                                 character_customization[3])
     destroy_graphic_elements()
+
+
+# button applaying value of 4 answer in fourth question
 
 def get_4_answer_4_question_button_command():
     character_customization.append("2")
-    character_clan_answers_logic(character_customization[0],character_customization[1],character_customization[2],character_customization[3])
+    character_clan_answers_logic(character_customization[0], character_customization[1], character_customization[2],
+                                 character_customization[3])
     destroy_graphic_elements()
-# send(DISCONNECT_MESSAGE)
+
+
 # Login Button command
 def login_button_command(usernameTextBox=None, passwordTextBox=None):
+    # get username and surename from login screen
     username = usernameTextBox.get("1.0", "end-1c")
     password = passwordTextBox.get("1.0", "end-1c")
+    # send username and password to server if those parameters exist in db player will login otherwise server will make a new account and character
     send(username + "&username " + "`" + password)
     server_respond = (client.recv(2048).decode(FORMAT))
     print(server_respond)
+    # login function
     if server_respond == "you can log in":
         print('funkcja logowania')
         # server_respond = (client.recv(2048).decode(FORMAT))
         # print(server_respond)
+    # account creation function start
     if server_respond == "your account is ready":
         print('funkcja tworzenia postaci')
         destroy_graphic_elements()
         # server_respond = (client.recv(2048).decode(FORMAT))
         # print(server_respond)
 
-        # first question window
+        # first question of champion creation
         first_question_window()
-
+def print_key(event,):
+    player_class_dictionary_global["x_coordinate"] = player_class_dictionary_global["x_coordinate"] + 3
+    root.quit()
+    main_game_loop()
+# main game loop
+def main_game_loop():
+    #print(player_class_dictionary_global)
+    # Chose map where the player and add it to window
+    map_image_open = Image.open(player_class_dictionary_global["map"])
+    main_game_background = ImageTk.PhotoImage(map_image_open)
+    backgroundLabel = tk.Label(root, image=main_game_background)
+    backgroundLabel.place(x=0, y=0)
+    # Load character textures
+    player_texture_load = Image.open(player_class_dictionary_global["asset"])
+    player_texture_for_pack = ImageTk.PhotoImage(player_texture_load)
+    playerLabel = tk.Label(root, image=player_texture_for_pack)
+    # Load character position in the map
+    playerLabel.place(x=player_class_dictionary_global["x_coordinate"], y=player_class_dictionary_global["y_coordinate"])
+    root.bind("<Key>", print_key)
+    root.mainloop()
 
 
 
@@ -516,22 +631,27 @@ def login_window():
     backgroundLabel.place(x=0, y=0)
 
     # Build buttons
+    # username box setup
     usernameTextBox = Text(root, width=14, height=1)
     usernameTextBox.pack()
     usernameTextBox.place(x=1035, y=550)
     usernameTextBox.bind("<Tab>", focus_next_widget)
+    # password box setup
     passwordTextBox = Text(root, width=14, height=1, )
     passwordTextBox.pack()
     passwordTextBox.bind("<Tab>", focus_next_widget)
     passwordTextBox.place(x=1035, y=570)
+    # login button setup
     myButton = Button(root, text="login", padx=40, pady=9,
                       command=lambda: login_button_command(usernameTextBox, passwordTextBox), bg="#439f9c")
     myButton.pack()
     myButton.place(x=1150, y=550)
+    # add elements to destroy list
     graphics_elements.append(myButton)
     graphics_elements.append(passwordTextBox)
     graphics_elements.append(usernameTextBox)
     graphics_elements.append(backgroundLabel)
+    # login instruction textbox
     loginInstrucionText = tk.Label(root, padx=40, pady=20, wraplength=180, justify="left",
                                    text="Welcome in Samurai no jikan! \n if you do not have an account, the first login will automatically create an account")
     loginInstrucionText.pack()
@@ -540,4 +660,5 @@ def login_window():
     root.mainloop()
 
 
+# start of program
 login_window()
