@@ -85,6 +85,8 @@ def handler_client(conn, addr):
                 #print(msg_update_split)
                 proper_user_name_dict["clan"].x_coordinate = msg_update_split[1]
                 proper_user_name_dict["clan"].y_coordinate = msg_update_split[2]
+                proper_user_name_dict["clan"].left = msg_update_split[3]
+                proper_user_name_dict["clan"].right = msg_update_split[4]
                 pickle_to_send = pickle.dumps(username_object_for_active_player)
                 conn.send(pickle_to_send)
                 # test
