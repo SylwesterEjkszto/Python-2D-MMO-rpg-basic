@@ -7,6 +7,6 @@ class Player():
         self.xp = 1
         self.clan = ""
         self.map = 'assets/testmap.png'
-        self.x_coordinate = 0
-        self.y_coordinate = 1
-        self.asset = 'assets/player.png'
+        self.x_coordinate = 5
+        self.y_coordinate = 5
+        self.asset = 'assets/standing.png'

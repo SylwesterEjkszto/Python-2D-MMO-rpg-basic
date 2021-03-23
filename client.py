@@ -6,6 +6,7 @@ import ctypes
 import random
 import pickle
 from Player import *
+import pygame
 
 # permanent
 HEADER = 64
@@ -309,12 +310,14 @@ def character_clan_answers_logic(first_question_answer, second_question_answer, 
         print(player_class_dictionary)
         print(player_class_dictionary["map"])
         # destroy the graphic window
-        destroy_graphic_elements()
+        root.quit()
+        root.destroy()
         # fill the player_class_dictionary_global with recived class object dictionary
         for key in player_class_dictionary:
             player_class_dictionary_global[key] = player_class_dictionary[key]
+        print(player_class_dictionary_global)
         # open main game loop
-        main_game_loop()
+        #main_game_loop()
 
 
 
@@ -587,40 +590,26 @@ def login_button_command(usernameTextBox=None, passwordTextBox=None):
     print(server_respond)
     # login function
     if server_respond == "you can log in":
-        print('funkcja logowania')
+        destroy_graphic_elements()
         # server_respond = (client.recv(2048).decode(FORMAT))
         # print(server_respond)
+        send("I can login")
+        # take respond from server which provide full Player object for this client(username)
+        server_first_pickle = (client.recv(2048))
+        server_first_pickle_recived = pickle.loads(server_first_pickle)
+        fist_pickle_in_dict = vars(server_first_pickle_recived)
+        root.quit()
+        root.destroy()
+        for key in fist_pickle_in_dict:
+            player_class_dictionary_global[key] = fist_pickle_in_dict[key]
+
+
     # account creation function start
     if server_respond == "your account is ready":
         print('funkcja tworzenia postaci')
         destroy_graphic_elements()
-        # server_respond = (client.recv(2048).decode(FORMAT))
-        # print(server_respond)
-
         # first question of champion creation
         first_question_window()
-def print_key(event,):
-    player_class_dictionary_global["x_coordinate"] = player_class_dictionary_global["x_coordinate"] + 3
-    root.quit()
-    main_game_loop()
-# main game loop
-def main_game_loop():
-    #print(player_class_dictionary_global)
-    # Chose map where the player and add it to window
-    map_image_open = Image.open(player_class_dictionary_global["map"])
-    main_game_background = ImageTk.PhotoImage(map_image_open)
-    backgroundLabel = tk.Label(root, image=main_game_background)
-    backgroundLabel.place(x=0, y=0)
-    # Load character textures
-    player_texture_load = Image.open(player_class_dictionary_global["asset"])
-    player_texture_for_pack = ImageTk.PhotoImage(player_texture_load)
-    playerLabel = tk.Label(root, image=player_texture_for_pack)
-    # Load character position in the map
-    playerLabel.place(x=player_class_dictionary_global["x_coordinate"], y=player_class_dictionary_global["y_coordinate"])
-    root.bind("<Key>", print_key)
-    root.mainloop()
-
-
 
 # Game client
 def login_window():
@@ -642,12 +631,12 @@ def login_window():
     passwordTextBox.bind("<Tab>", focus_next_widget)
     passwordTextBox.place(x=1035, y=570)
     # login button setup
-    myButton = Button(root, text="login", padx=40, pady=9,
+    login_button = Button(root, text="login", padx=40, pady=9,
                       command=lambda: login_button_command(usernameTextBox, passwordTextBox), bg="#439f9c")
-    myButton.pack()
-    myButton.place(x=1150, y=550)
+    login_button.pack()
+    login_button.place(x=1150, y=550)
     # add elements to destroy list
-    graphics_elements.append(myButton)
+    graphics_elements.append(login_button)
     graphics_elements.append(passwordTextBox)
     graphics_elements.append(usernameTextBox)
     graphics_elements.append(backgroundLabel)
@@ -661,4 +650,78 @@ def login_window():
 
 
 # start of program
+#Client starter login - character customization
+
 login_window()
+active_players = {}
+# main game loop setup
+run_pygame = "1"
+walkRight = [pygame.image.load('assets/R1.png'), pygame.image.load('assets/R2.png'), pygame.image.load('assets/R3.png'),
+             pygame.image.load('assets/R4.png'), pygame.image.load('assets/R5.png'), pygame.image.load('assets/R6.png'),
+             pygame.image.load('assets/R7.png'), pygame.image.load('assets/R8.png'), pygame.image.load('assets/R9.png')]
+walkLeft = [pygame.image.load('assets/L1.png'), pygame.image.load('assets/L2.png'), pygame.image.load('assets/L3.png'),
+            pygame.image.load('assets/L4.png'), pygame.image.load('assets/L5.png'), pygame.image.load('assets/L6.png'),
+            pygame.image.load('assets/L7.png'), pygame.image.load('assets/L8.png'), pygame.image.load('assets/L9.png')]
+bg = pygame.image.load(player_class_dictionary_global["map"])
+print(player_class_dictionary_global)
+#char = pygame.image.load('assets/standing.png')
+clock = pygame.time.Clock()
+left = False
+right = False
+walkCount = 0
+vel = 5
+# update screen images
+def redrawGameWindow():
+    global walkCount
+    win.blit(bg, (0, 0))
+    send(f"update &{player_class_dictionary_global['x_coordinate']} & {player_class_dictionary_global['y_coordinate']}")
+    server_respond_for_redraw = (client.recv(2048))
+    pickle_from_server_update = pickle.loads(server_respond_for_redraw)
+    for key in pickle_from_server_update:
+        active_players[key] = (pickle_from_server_update[key])
+        char = pygame.image.load(active_players[key]["asset"])
+        win.blit(char,(int(active_players[key]['x_coordinate']),int(active_players[key]['y_coordinate'])))
+    pygame.display.update()
+
+
+pygame.init()
+win = pygame.display.set_mode((WIDTH,HEIGHT))
+pygame.display.set_caption("Samurai no jikan")
+# main game loop
+while run_pygame == "1":
+    clock.tick(27)
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            run = False
+    keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_LEFT]: #and int(player_class_dictionary_global["x_coordinate"]) > vel:
+        player_class_dictionary_global["x_coordinate"] = int(player_class_dictionary_global["x_coordinate"]) - vel
+        left = True
+        right = False
+    elif keys[pygame.K_RIGHT]: #and int(player_class_dictionary_global["x_coordinate"]) < 500 - WIDTH - vel:
+        player_class_dictionary_global["x_coordinate"] = int(player_class_dictionary_global["x_coordinate"]) + vel
+        right = True
+        left = False
+    else:
+        right = False
+        left = False
+        walkCount = 0
+
+    if keys[pygame.K_UP]:  # and int(player_class_dictionary_global["x_coordinate"]) > vel:
+        player_class_dictionary_global["y_coordinate"] = int(player_class_dictionary_global["y_coordinate"]) - vel
+        left = False
+        right = False
+    elif keys[pygame.K_DOWN]:  # and int(player_class_dictionary_global["x_coordinate"]) < 500 - WIDTH - vel:
+        player_class_dictionary_global["y_coordinate"] = int(player_class_dictionary_global["y_coordinate"]) + vel
+        right = False
+        left = False
+    else:
+        right = False
+        left = False
+        walkCount = 0
+
+    redrawGameWindow()
+
+pygame.quit()
