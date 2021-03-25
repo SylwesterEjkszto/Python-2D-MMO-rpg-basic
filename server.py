@@ -88,7 +88,8 @@ def handler_client(conn, addr):
                 proper_user_name_dict["clan"].y_coordinate = msg_update_split[2]
                 proper_user_name_dict["clan"].active = "active"
                 #proper_user_name_dict["clan"].left = msg_update_split[3]
-                #proper_user_name_dict["clan"].right = msg_update_split[4]
+                #proper_user_name_dict["clan"].map = str(msg_update_split[4])
+                #print(proper_user_name_dict["clan"].map)
                 pickle_to_send = pickle.dumps(username_object_for_active_player)
                 conn.send(pickle_to_send)
                 # test
@@ -98,6 +99,9 @@ def handler_client(conn, addr):
             #disconnect from server
 
             if msg == DISCONNECT_MESSAGE:
+                for key in username_object_for_active_player:
+                    username_object_for_active_player[key]["active"] = "afk"
+                    print(username_object_for_active_player[key])
                 connected = False
     conn.close()
 
@@ -114,3 +118,8 @@ def start():
 
 
 start()
+
+# What i wanna do after disconnect
+for key in username_object_for_active_player:
+    username_object_for_active_player[key]["active"] = "afk"
+    print(username_object_for_active_player[key])

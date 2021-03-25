@@ -726,6 +726,8 @@ def redrawGameWindow():
             char = pygame.image.load(active_players[key]["asset"])
             win.blit(char, (int(active_players[key]['x_coordinate']) - cameraObject.x,
                             int(active_players[key]['y_coordinate']) - cameraObject.y))
+    map_object_load("map_elements/drzwi.png",1420,1390,20,15,55,64)
+    map_object_load("map_elements/drzwi.png",1470,1390,20,15,55,64)
 
     player_hitbox = (player_class_dictionary_global['x_coordinate'] + 17 - cameraObject.x, player_class_dictionary_global['y_coordinate'] + 11 - cameraObject.y, 29, 52)
     pygame.draw.rect(win, (255, 0, 0), player_hitbox, 2)
@@ -750,6 +752,9 @@ def collision_first_map():
     goblin_test = pygame.Rect(goblin.hitbox)
     first_map_colision_dict["1"] = goblin_test
     collision_maker(230,0,0,0,600,360,first_map_colision_dict,"2")
+    collision_maker(1420,1390,20,15,55,64,first_map_colision_dict,"portal1")
+    collision_maker(1470,1390,20,15,55,64,first_map_colision_dict,"portal2")
+
 first_map_colision_dict ={}
 list_of_map_colisions = [first_map_colision_dict]
 # pygame window basic setup
@@ -824,6 +829,11 @@ while run_pygame == "1":
                 player_class_dictionary_global["y_coordinate"] -= 10
         if collision_count == 0 and keys[pygame.K_UP] == False:
             player_class_dictionary_global["y_coordinate"] += vel
+
+    if player_collision_rect.colliderect(first_map_colision_dict["portal1"]) or player_collision_rect.colliderect(first_map_colision_dict["portal2"]):
+        player_class_dictionary_global["map"] = "assets/bg.jpg"
+        player_class_dictionary_global["x_coordinate"] = 5
+        player_class_dictionary_global["y_coordinate"] = 5
 
     #collision fixer
     collision_count = 0
