@@ -672,12 +672,15 @@ class Camera:
        self.x = x
        self.y = y
 cameraObject = Camera(0,0)
+
+
 #camra blocakde
 def clamp(value, minimum=0.0, maximum=1.0):
     return minimum if value < minimum else maximum if value > maximum else value
+
+
 #camera movement
 def slide_to(camera, destination, dt, speed_factor=0.5, anchor_point=None):
-    """slide a camera to a certain destination smoothly."""
     if anchor_point is None:
         anchor_point = (0, 0)
     else:
@@ -687,6 +690,7 @@ def slide_to(camera, destination, dt, speed_factor=0.5, anchor_point=None):
 
     camera.x += (destination[0] - camera.x - anchor_point[0]) * fac
     camera.y += (destination[1] - camera.y - anchor_point[1]) * fac
+
 # map object loader
 def map_object_load(string_path_to_image,x_position,y_position,x_fix,y_fix,texture_hitbox_width,texture_hitbox_height):
     texture_name = pygame.image.load(string_path_to_image)
@@ -732,15 +736,8 @@ def redrawGameWindow():
         win.blit(goblin_text,(goblin.x-cameraObject.x,goblin.y-cameraObject.y))
         goblin.hitbox = (goblin.x - cameraObject.x + 17, goblin.y - cameraObject.y + 2, 31, 57)
         pygame.draw.rect(win, (255, 0, 0), goblin.hitbox, 2)
-        attack_hitbox = ((int(player_class_dictionary_global["x_coordinate"])) - cameraObject.x, (int(player_class_dictionary_global["y_coordinate"]) - cameraObject.y),200,200)
-        pygame.draw.rect(win, (255, 0, 0),attack_hitbox, 2)
-
-    if attack_now:
-        attack_texture_load = pygame.image.load(Jiba.texture)
-        attack_load_x = int(player_class_dictionary_global["x_coordinate"]) - 19
-        attack_load_y = int(player_class_dictionary_global["y_coordinate"]) - 5
-        win.blit(attack_texture_load,(attack_load_x - cameraObject.x,attack_load_y-cameraObject.y))
-        pygame.display.update()
+        Howa.collision_redbox_draw()
+        Jiba.collision_redbox_draw()
     if "assets/pierwszamapa.png" in player_class_dictionary_global["map"]:
         first_map_draw_function()
     pygame.display.update()
@@ -754,8 +751,46 @@ def collision_first_map():
     collision_maker(1420,1390,20,15,55,64,first_map_colision_dict,"portal1")
     collision_maker(1470,1390,20,15,55,64,first_map_colision_dict,"portal2")
 
+#Attacks
+class Attack():
+    def __init__(self,width_and_hight_of_skill_area,name,dmg,texture):
+        self.hitbox = width_and_hight_of_skill_area
+        self.name = name
+        self.dmg = dmg
+        self.description = ""
+        self.texture = texture
+    # For enginge collisions
+    def attack_collision_maker(name):
+        x_fix = (name.hitbox / 4) - 35
+        y_fix = (name.hitbox /4) - 40
+        parameter = name.hitbox / 2
+        attack_hitbox = ((int(player_class_dictionary_global["x_coordinate"])) - cameraObject.x - int(x_fix),
+                         (int(player_class_dictionary_global["y_coordinate"]) - cameraObject.y - int(y_fix)), int(parameter),
+                         int(parameter))
+        pygame.draw.rect(win, (255, 0, 0), attack_hitbox, 2)
+        attack_collision = pygame.Rect(attack_hitbox)
+        if attack_collision.colliderect(first_map_colision_dict["1"]):
+            print("hit")
+    # Draw visual for checking
+    def collision_redbox_draw(name):
+        x_fix = (name.hitbox / 4) - 35
+        y_fix = (name.hitbox /4) -40
+        parameter = name.hitbox / 2
+        attack_hitbox = ((int(player_class_dictionary_global["x_coordinate"])) - cameraObject.x - int(x_fix),
+                         (int(player_class_dictionary_global["y_coordinate"]) - cameraObject.y - int(y_fix)),
+                         int(parameter),
+                         int(parameter))
+        pygame.draw.rect(win, (255, 0, 0), attack_hitbox, 2)
+
+# Attacks declarations
+Jiba = Attack(400,"Jiba",1,"assets/jiba1.png")
+Howa = Attack(200,"Howa",0,"assets/jiba.png")
+attacks_list = [Jiba,Howa]
+
+#Collisions dicts
 first_map_colision_dict ={}
 list_of_map_colisions = [first_map_colision_dict]
+
 # pygame window basic setup
 run_pygame = "1"
 bg = pygame.image.load("assets/pierwszamapa.png")
@@ -764,28 +799,37 @@ left = False
 right = False
 attack_now = False
 walkCount = 0
-# velocity
+
+# velocity - speed of movement
 vel = 5
 pygame.init()
 win = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("Samurai no jikan")
+
 # cd for attack timer
 attack_cd= time.time()
+
+# Variable for collision checker
 last_used_move_key = ""
+
 # main game loop
 while run_pygame == "1":
     clock.tick(30)
-    # collisions
+
+    # collisions quick setup
     player_hitbox = (player_class_dictionary_global['x_coordinate'] + 17 - cameraObject.x, player_class_dictionary_global['y_coordinate'] + 11 - cameraObject.y, 29, 52)
     player_collision_rect = pygame.Rect(player_hitbox)
     if 'assets/pierwszamapa.png' in player_class_dictionary_global["map"]:
         collision_first_map()
+
     # Keys events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
     keys = pygame.key.get_pressed()
+
     # movement right left up down events
+
     if keys[pygame.K_LEFT]: #and int(player_class_dictionary_global["x_coordinate"]) -vel > 0:
         #update player position data
         last_used_move_key = "left"
@@ -829,11 +873,13 @@ while run_pygame == "1":
         if collision_count == 0 and keys[pygame.K_UP] == False:
             player_class_dictionary_global["y_coordinate"] += vel
 
+    # portal logic setup
     if player_collision_rect.colliderect(first_map_colision_dict["portal1"]) or player_collision_rect.colliderect(first_map_colision_dict["portal2"]):
         player_class_dictionary_global["map"] = "assets/bg.jpg"
         player_class_dictionary_global["x_coordinate"] = 5
         player_class_dictionary_global["y_coordinate"] = 5
         bg = pygame.image.load("assets/bg.jpg")
+
     #collision fixer
     collision_count = 0
     for key in first_map_colision_dict:
@@ -848,30 +894,26 @@ while run_pygame == "1":
     if last_used_move_key == "right" and collision_count >0:
             player_class_dictionary_global["x_coordinate"] -= 10
 
-    #test of attack with collision system
+    #attack_collision_maker(Jiba)
+    Jiba.attack_collision_maker()
+
+    # X and Y checker
     if keys[pygame.K_SPACE]:
+        #test of cooldowns
         if time.time() - attack_cd > 3:  # if its been 1 second
             attack_now = True
             attack_cd = time.time()
             print(player_class_dictionary_global["x_coordinate"])
             print(player_class_dictionary_global["y_coordinate"])
-    # Colission system for attacks
-    for attacks in attacks_list:
-        if (int(player_class_dictionary_global["y_coordinate"])) - 40 < goblin.hitbox[1] + goblin.hitbox[3] and (int(player_class_dictionary_global["y_coordinate"])) + 40 > goblin.hitbox[
-            1] and attack_now == True:  # Checks x coords
-            if (int(player_class_dictionary_global["x_coordinate"])) + 40 > goblin.hitbox[0] and (int(player_class_dictionary_global["x_coordinate"])) - 40 < goblin.hitbox[0] + goblin.hitbox[2]:  # Checks y coords
-                attack_now = False
-                goblin.hit()  # calls enemy hit method
-        else:
-            attack_now = False
-
 
 
     #refreshing the camera view
     slide_to(cameraObject,(int(player_class_dictionary_global["x_coordinate"]), int(player_class_dictionary_global["y_coordinate"])), 1/(clock.get_fps() + 1e-07), 7, (WIDTH/2, HEIGHT/2))
+
     # camera lock to prevent the camera from going off the map
     cameraObject.x = clamp(cameraObject.x, 0, 1720)
     cameraObject.y = clamp(cameraObject.y, 0, 780)
+
     # window graphic update
     redrawGameWindow()
 
