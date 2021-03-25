@@ -707,36 +707,33 @@ def redrawGameWindow():
     win.blit(bg, (0 - cameraObject.x, 0-cameraObject.y))
 
     #server communication
-    send(f"update &{player_class_dictionary_global['x_coordinate']} & {player_class_dictionary_global['y_coordinate']} & {player_class_dictionary_global['active']}")
+    send(f"update &{player_class_dictionary_global['x_coordinate']} & {player_class_dictionary_global['y_coordinate']} & {player_class_dictionary_global['map']}")
     server_respond_for_redraw = (client.recv(2048))
     pickle_from_server_update = pickle.loads(server_respond_for_redraw)
     # activity on server checker
-    for key in active_players:
-        active_players[key]['active'] = "afk"
+
     # players update
     for key in pickle_from_server_update:
         active_players[key] = (pickle_from_server_update[key])
     # Drawing function
-    map_object_load('assets/temple.png',230,0,0,0,600,360)
-    for key in active_players:
-        if active_players[key]['active'] == "afk":
-            active_players[key]["x_coordinate"] = -100000
-    for key in active_players:
-        if active_players[key]['active'] == "active":
-            char = pygame.image.load(active_players[key]["asset"])
-            win.blit(char, (int(active_players[key]['x_coordinate']) - cameraObject.x,
-                            int(active_players[key]['y_coordinate']) - cameraObject.y))
-    map_object_load("map_elements/drzwi.png",1420,1390,20,15,55,64)
-    map_object_load("map_elements/drzwi.png",1470,1390,20,15,55,64)
+    def first_map_draw_function():
+        map_object_load('assets/temple.png',230,0,0,0,600,360)
+        for key in active_players:
+            if active_players[key]['active'] == "active":
+                if 'assets/pierwszamapa.png' in active_players[key]["map"]:
+                    char = pygame.image.load(active_players[key]["asset"])
+                    win.blit(char, (int(active_players[key]['x_coordinate']) - cameraObject.x,int(active_players[key]['y_coordinate']) - cameraObject.y))
+        map_object_load("map_elements/drzwi.png",1420,1390,20,15,55,64)
+        map_object_load("map_elements/drzwi.png",1470,1390,20,15,55,64)
 
-    player_hitbox = (player_class_dictionary_global['x_coordinate'] + 17 - cameraObject.x, player_class_dictionary_global['y_coordinate'] + 11 - cameraObject.y, 29, 52)
-    pygame.draw.rect(win, (255, 0, 0), player_hitbox, 2)
-    goblin_text = pygame.image.load(f'{goblin.asset}')
-    win.blit(goblin_text,(goblin.x-cameraObject.x,goblin.y-cameraObject.y))
-    goblin.hitbox = (goblin.x - cameraObject.x + 17, goblin.y - cameraObject.y + 2, 31, 57)
-    pygame.draw.rect(win, (255, 0, 0), goblin.hitbox, 2)
-    attack_hitbox = ((int(player_class_dictionary_global["x_coordinate"])) - cameraObject.x, (int(player_class_dictionary_global["y_coordinate"]) - cameraObject.y),200,200)
-    pygame.draw.rect(win, (255, 0, 0),attack_hitbox, 2)
+        player_hitbox = (player_class_dictionary_global['x_coordinate'] + 17 - cameraObject.x, player_class_dictionary_global['y_coordinate'] + 11 - cameraObject.y, 29, 52)
+        pygame.draw.rect(win, (255, 0, 0), player_hitbox, 2)
+        goblin_text = pygame.image.load(f'{goblin.asset}')
+        win.blit(goblin_text,(goblin.x-cameraObject.x,goblin.y-cameraObject.y))
+        goblin.hitbox = (goblin.x - cameraObject.x + 17, goblin.y - cameraObject.y + 2, 31, 57)
+        pygame.draw.rect(win, (255, 0, 0), goblin.hitbox, 2)
+        attack_hitbox = ((int(player_class_dictionary_global["x_coordinate"])) - cameraObject.x, (int(player_class_dictionary_global["y_coordinate"]) - cameraObject.y),200,200)
+        pygame.draw.rect(win, (255, 0, 0),attack_hitbox, 2)
 
     if attack_now:
         attack_texture_load = pygame.image.load(Jiba.texture)
@@ -744,6 +741,8 @@ def redrawGameWindow():
         attack_load_y = int(player_class_dictionary_global["y_coordinate"]) - 5
         win.blit(attack_texture_load,(attack_load_x - cameraObject.x,attack_load_y-cameraObject.y))
         pygame.display.update()
+    if "assets/pierwszamapa.png" in player_class_dictionary_global["map"]:
+        first_map_draw_function()
     pygame.display.update()
 
 #Collisions
@@ -759,7 +758,7 @@ first_map_colision_dict ={}
 list_of_map_colisions = [first_map_colision_dict]
 # pygame window basic setup
 run_pygame = "1"
-bg = pygame.image.load(player_class_dictionary_global["map"])
+bg = pygame.image.load("assets/pierwszamapa.png")
 clock = pygame.time.Clock()
 left = False
 right = False
@@ -779,7 +778,7 @@ while run_pygame == "1":
     # collisions
     player_hitbox = (player_class_dictionary_global['x_coordinate'] + 17 - cameraObject.x, player_class_dictionary_global['y_coordinate'] + 11 - cameraObject.y, 29, 52)
     player_collision_rect = pygame.Rect(player_hitbox)
-    if player_class_dictionary_global["map"] == 'assets/pierwszamapa.png':
+    if 'assets/pierwszamapa.png' in player_class_dictionary_global["map"]:
         collision_first_map()
     # Keys events
     for event in pygame.event.get():
@@ -834,7 +833,7 @@ while run_pygame == "1":
         player_class_dictionary_global["map"] = "assets/bg.jpg"
         player_class_dictionary_global["x_coordinate"] = 5
         player_class_dictionary_global["y_coordinate"] = 5
-
+        bg = pygame.image.load("assets/bg.jpg")
     #collision fixer
     collision_count = 0
     for key in first_map_colision_dict:

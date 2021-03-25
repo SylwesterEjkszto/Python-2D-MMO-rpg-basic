@@ -2,7 +2,7 @@ import socket
 import threading
 import pickle
 from Player import *
-
+import time
 HEADER = 2048
 PORT =5050
 SERVER= socket.gethostbyname(socket.gethostname())
@@ -23,6 +23,7 @@ def handler_client(conn, addr):
     print(f"[NEW CONNECTIONS] {addr} connected.")
     proper_user_name_dict = {}
     connected = True
+    timer = time.time()
     while connected:
         msg_length = conn.recv(HEADER).decode(FORMAT)
         if msg_length:
@@ -84,12 +85,9 @@ def handler_client(conn, addr):
                 username_object_for_active_player[proper_user_name_dict["proper_username"]] = vars(proper_user_name_dict["clan"])
                 msg_update_split = msg.split('&')
                 #print(msg_update_split)
-                proper_user_name_dict["clan"].x_coordinate = msg_update_split[1]
-                proper_user_name_dict["clan"].y_coordinate = msg_update_split[2]
-                proper_user_name_dict["clan"].active = "active"
-                #proper_user_name_dict["clan"].left = msg_update_split[3]
-                #proper_user_name_dict["clan"].map = str(msg_update_split[4])
-                #print(proper_user_name_dict["clan"].map)
+                proper_user_name_dict["clan"].x_coordinate = int(msg_update_split[1])
+                proper_user_name_dict["clan"].y_coordinate = int(msg_update_split[2])
+                proper_user_name_dict["clan"].map = str(msg_update_split[3])
                 pickle_to_send = pickle.dumps(username_object_for_active_player)
                 conn.send(pickle_to_send)
                 # test
@@ -99,10 +97,18 @@ def handler_client(conn, addr):
             #disconnect from server
 
             if msg == DISCONNECT_MESSAGE:
-                for key in username_object_for_active_player:
-                    username_object_for_active_player[key]["active"] = "afk"
-                    print(username_object_for_active_player[key])
                 connected = False
+
+            if time.time() - timer > 30:
+                characters_database_pickle = open(f"characters/{proper_user_name_dict['proper_username']}.pkl", "wb")
+                pickle.dump(proper_user_name_dict['clan'], characters_database_pickle)
+                characters_database_pickle.close()
+                users_login_database_pickle = open(f"characters/{proper_user_name_dict['proper_username']}.pkl", "rb")
+                smth = pickle.load(users_login_database_pickle)
+                users_login_database_pickle.close()
+                print(vars(smth))
+                timer = time.time()
+
     conn.close()
 
 

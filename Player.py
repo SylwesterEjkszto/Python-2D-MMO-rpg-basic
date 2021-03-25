@@ -16,6 +16,6 @@ class Player():
         self.down = 0
         self.up = 0
         self.hitbox = (self.x_coordinate + 17, self.y_coordinate + 11, 29, 52)
-        self.active = "afk"
+        self.active = "active"
 
 
