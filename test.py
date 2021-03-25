@@ -1,6 +1,4 @@
-import pickle
-
-users = {}
-nadpisz = open("users/data.pkl", "wb")
-chuj = pickle.dump(users,nadpisz)
-nadpisz.close()
+import time
+timer = time.time()
+while True:
+    print(time.time() - timer)

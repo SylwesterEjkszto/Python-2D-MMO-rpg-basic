@@ -31,8 +31,10 @@ character_customization = []
 # dict for sending pickles with class object parameters
 player_class_dictionary_global = {}
 # main window setup
-WIDTH = ctypes.windll.user32.GetSystemMetrics(0)
-HEIGHT = ctypes.windll.user32.GetSystemMetrics(1)
+WIDTH = 1280
+HEIGHT = 720
+#WIDTH = ctypes.windll.user32.GetSystemMetrics(0)
+#HEIGHT = ctypes.windll.user32.GetSystemMetrics(1)
 root = tk.Tk()
 root.state("zoomed")
 root.geometry(f'{WIDTH}x{HEIGHT}')
@@ -631,10 +633,13 @@ def login_window():
     usernameTextBox.pack()
     usernameTextBox.place(x=1035, y=550)
     usernameTextBox.bind("<Tab>", focus_next_widget)
+    usernameTextBox.bind("<Return>", focus_next_widget)
+
     # password box setup
     passwordTextBox = Text(root, width=14, height=1, )
     passwordTextBox.pack()
     passwordTextBox.bind("<Tab>", focus_next_widget)
+    passwordTextBox.bind("<Return>", focus_next_widget)
     passwordTextBox.place(x=1035, y=570)
     # login button setup
     login_button = Button(root, text="login", padx=40, pady=9,
@@ -656,30 +661,21 @@ def login_window():
 
 
 # start of program
-#Client starter login - character customization
-
 login_window()
 active_players = {}
-# main game loop setup
-run_pygame = "1"
-bg = pygame.image.load(player_class_dictionary_global["map"])
-print(player_class_dictionary_global)
-#char = pygame.image.load('assets/standing.png')
-clock = pygame.time.Clock()
-left = False
-right = False
-attack_now = False
-walkCount = 0
-vel = 5
+transparent = (0,0,0,0)
+# End of tkinter start of pygame
+
+# camera customization
 class Camera:
    def __init__(self, x, y):
        self.x = x
        self.y = y
 cameraObject = Camera(0,0)
+#camra blocakde
 def clamp(value, minimum=0.0, maximum=1.0):
     return minimum if value < minimum else maximum if value > maximum else value
-
-
+#camera movement
 def slide_to(camera, destination, dt, speed_factor=0.5, anchor_point=None):
     """slide a camera to a certain destination smoothly."""
     if anchor_point is None:
@@ -691,21 +687,46 @@ def slide_to(camera, destination, dt, speed_factor=0.5, anchor_point=None):
 
     camera.x += (destination[0] - camera.x - anchor_point[0]) * fac
     camera.y += (destination[1] - camera.y - anchor_point[1]) * fac
+# map object loader
+def map_object_load(string_path_to_image,x_position,y_position,x_fix,y_fix,texture_hitbox_width,texture_hitbox_height):
+    texture_name = pygame.image.load(string_path_to_image)
+    win.blit(texture_name, (x_position - cameraObject.x, y_position - cameraObject.y))
+    texture_hitbox = (x_position + x_fix - cameraObject.x, y_position + y_fix - cameraObject.y,texture_hitbox_width,texture_hitbox_height)
+    pygame.draw.rect(win, (255, 0, 0), texture_hitbox, 2)
+
+# make object for collision
+def collision_maker(x_position,y_position,x_fix,y_fix,hitbox_width,htibox_height,dict_name,dict_key_string):
+    texture_hitbox = (x_position + x_fix - cameraObject.x, y_position + y_fix - cameraObject.y,hitbox_width,htibox_height)
+    collision_box = pygame.Rect(texture_hitbox)
+    dict_name[dict_key_string] = collision_box
+
 # update screen images
 def redrawGameWindow():
     global walkCount
+    #background draw
     win.blit(bg, (0 - cameraObject.x, 0-cameraObject.y))
-    #screen.blit(obj.image, (obj.x - cam.x, obj.y - cam.y))
 
-    send(f"update &{player_class_dictionary_global['x_coordinate']} & {player_class_dictionary_global['y_coordinate']} & {player_class_dictionary_global['left']} & {player_class_dictionary_global['right']}")
+    #server communication
+    send(f"update &{player_class_dictionary_global['x_coordinate']} & {player_class_dictionary_global['y_coordinate']} & {player_class_dictionary_global['active']}")
     server_respond_for_redraw = (client.recv(2048))
     pickle_from_server_update = pickle.loads(server_respond_for_redraw)
-    if walkCount + 1 >= 30:
-        walkCount = 0
+    # activity on server checker
+    for key in active_players:
+        active_players[key]['active'] = "afk"
+    # players update
     for key in pickle_from_server_update:
         active_players[key] = (pickle_from_server_update[key])
-        char = pygame.image.load(active_players[key]["asset"])
-        win.blit(char,(int(active_players[key]['x_coordinate']) - cameraObject.x,int(active_players[key]['y_coordinate'])- cameraObject.y))
+    # Drawing function
+    map_object_load('assets/temple.png',230,0,0,0,600,360)
+    for key in active_players:
+        if active_players[key]['active'] == "afk":
+            active_players[key]["x_coordinate"] = -100000
+    for key in active_players:
+        if active_players[key]['active'] == "active":
+            char = pygame.image.load(active_players[key]["asset"])
+            win.blit(char, (int(active_players[key]['x_coordinate']) - cameraObject.x,
+                            int(active_players[key]['y_coordinate']) - cameraObject.y))
+
     player_hitbox = (player_class_dictionary_global['x_coordinate'] + 17 - cameraObject.x, player_class_dictionary_global['y_coordinate'] + 11 - cameraObject.y, 29, 52)
     pygame.draw.rect(win, (255, 0, 0), player_hitbox, 2)
     goblin_text = pygame.image.load(f'{goblin.asset}')
@@ -714,7 +735,8 @@ def redrawGameWindow():
     pygame.draw.rect(win, (255, 0, 0), goblin.hitbox, 2)
     attack_hitbox = ((int(player_class_dictionary_global["x_coordinate"])) - cameraObject.x, (int(player_class_dictionary_global["y_coordinate"]) - cameraObject.y),200,200)
     pygame.draw.rect(win, (255, 0, 0),attack_hitbox, 2)
-    if keys[pygame.K_SPACE]:
+
+    if attack_now:
         attack_texture_load = pygame.image.load(Jiba.texture)
         attack_load_x = int(player_class_dictionary_global["x_coordinate"]) - 19
         attack_load_y = int(player_class_dictionary_global["y_coordinate"]) - 5
@@ -722,62 +744,127 @@ def redrawGameWindow():
         pygame.display.update()
     pygame.display.update()
 
-
+#Collisions
+def collision_first_map():
+    goblin.hitbox = (goblin.x - cameraObject.x + 17, goblin.y - cameraObject.y + 2, 31, 57)
+    goblin_test = pygame.Rect(goblin.hitbox)
+    first_map_colision_dict["1"] = goblin_test
+    collision_maker(230,0,0,0,600,360,first_map_colision_dict,"2")
+first_map_colision_dict ={}
+list_of_map_colisions = [first_map_colision_dict]
+# pygame window basic setup
+run_pygame = "1"
+bg = pygame.image.load(player_class_dictionary_global["map"])
+clock = pygame.time.Clock()
+left = False
+right = False
+attack_now = False
+walkCount = 0
+# velocity
+vel = 5
 pygame.init()
 win = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("Samurai no jikan")
-# main game loop
+# cd for attack timer
 attack_cd= time.time()
-
+last_used_move_key = ""
+# main game loop
 while run_pygame == "1":
     clock.tick(30)
+    # collisions
+    player_hitbox = (player_class_dictionary_global['x_coordinate'] + 17 - cameraObject.x, player_class_dictionary_global['y_coordinate'] + 11 - cameraObject.y, 29, 52)
+    player_collision_rect = pygame.Rect(player_hitbox)
+    if player_class_dictionary_global["map"] == 'assets/pierwszamapa.png':
+        collision_first_map()
+    # Keys events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
     keys = pygame.key.get_pressed()
+    # movement right left up down events
+    if keys[pygame.K_LEFT]: #and int(player_class_dictionary_global["x_coordinate"]) -vel > 0:
+        #update player position data
+        last_used_move_key = "left"
+        collision_count = 0
+        for key in first_map_colision_dict:
+            if player_collision_rect.colliderect(first_map_colision_dict[key]):
+                collision_count += 1
+                player_class_dictionary_global["x_coordinate"] += vel
+        if collision_count == 0 and keys[pygame.K_RIGHT] == False:
+            player_class_dictionary_global["x_coordinate"] -=  vel
+    elif keys[pygame.K_RIGHT]:#and int(player_class_dictionary_global["x_coordinate"]) + vel < 2950:
+        #update player position data
+        last_used_move_key = "right"
+        collision_count = 0
+        for key in first_map_colision_dict:
+            if player_collision_rect.colliderect(first_map_colision_dict[key]):
+                collision_count += 1
+                player_class_dictionary_global["x_coordinate"] -= vel
+        if collision_count ==0 and keys[pygame.K_LEFT] == False:
+            player_class_dictionary_global["x_coordinate"] += vel
 
-    if keys[pygame.K_LEFT] and int(player_class_dictionary_global["x_coordinate"]) -vel > 0:
-        player_class_dictionary_global["x_coordinate"] = int(player_class_dictionary_global["x_coordinate"]) - vel
-        player_class_dictionary_global["left"] = 1
-        player_class_dictionary_global["right"] = 0
-    elif keys[pygame.K_RIGHT]and int(player_class_dictionary_global["x_coordinate"]) + vel < 2335:
-        player_class_dictionary_global["x_coordinate"] = int(player_class_dictionary_global["x_coordinate"]) + vel
-        player_class_dictionary_global["left"] = 0
-        player_class_dictionary_global["right"] = 1
-    else:
-        player_class_dictionary_global["left"] = 0
-        player_class_dictionary_global["right"] = 0
-        walkCount = 0
 
-    if keys[pygame.K_UP] and int(player_class_dictionary_global["y_coordinate"]) - vel > 0:
-        player_class_dictionary_global["y_coordinate"] = int(player_class_dictionary_global["y_coordinate"]) - vel
-        left = False
-        right = False
-    elif keys[pygame.K_DOWN] and int(player_class_dictionary_global["y_coordinate"]) + vel < 1115:
-        player_class_dictionary_global["y_coordinate"] = int(player_class_dictionary_global["y_coordinate"]) + vel
-        right = False
-        left = False
-    else:
-        right = False
-        left = False
-        walkCount = 0
+    if keys[pygame.K_UP]: #and int(player_class_dictionary_global["y_coordinate"]) - vel > 0:
+        #update player position data
+        last_used_move_key = "up"
+        collision_count = 0
+        for key in first_map_colision_dict:
+            if player_collision_rect.colliderect(first_map_colision_dict[key]):
+                collision_count += 1
+                player_class_dictionary_global["y_coordinate"] += 10
+        if collision_count == 0 and keys[pygame.K_DOWN] == False:
+            player_class_dictionary_global["y_coordinate"] -=  vel
+    elif keys[pygame.K_DOWN]: #and int(player_class_dictionary_global["y_coordinate"]) + vel < 2935:
+        #update player position data
+        last_used_move_key = "down"
+        collision_count = 0
+        for key in first_map_colision_dict:
+            if player_collision_rect.colliderect(first_map_colision_dict[key]):
+                collision_count += 1
+                player_class_dictionary_global["y_coordinate"] -= 10
+        if collision_count == 0 and keys[pygame.K_UP] == False:
+            player_class_dictionary_global["y_coordinate"] += vel
+
+    #collision fixer
+    collision_count = 0
+    for key in first_map_colision_dict:
+        if player_collision_rect.colliderect(first_map_colision_dict[key]):
+            collision_count += 1
+    if last_used_move_key == "up" and collision_count >0:
+            player_class_dictionary_global["y_coordinate"] += 10
+    if last_used_move_key == "down" and collision_count >0:
+            player_class_dictionary_global["y_coordinate"] -= 10
+    if last_used_move_key == "left" and collision_count >0:
+            player_class_dictionary_global["x_coordinate"] += 10
+    if last_used_move_key == "right" and collision_count >0:
+            player_class_dictionary_global["x_coordinate"] -= 10
+
+    #test of attack with collision system
     if keys[pygame.K_SPACE]:
         if time.time() - attack_cd > 3:  # if its been 1 second
             attack_now = True
             attack_cd = time.time()
-
+            print(player_class_dictionary_global["x_coordinate"])
+            print(player_class_dictionary_global["y_coordinate"])
+    # Colission system for attacks
     for attacks in attacks_list:
         if (int(player_class_dictionary_global["y_coordinate"])) - 40 < goblin.hitbox[1] + goblin.hitbox[3] and (int(player_class_dictionary_global["y_coordinate"])) + 40 > goblin.hitbox[
             1] and attack_now == True:  # Checks x coords
             if (int(player_class_dictionary_global["x_coordinate"])) + 40 > goblin.hitbox[0] and (int(player_class_dictionary_global["x_coordinate"])) - 40 < goblin.hitbox[0] + goblin.hitbox[2]:  # Checks y coords
                 attack_now = False
                 goblin.hit()  # calls enemy hit method
-    slide_to(cameraObject,(int(player_class_dictionary_global["x_coordinate"]), int(player_class_dictionary_global["y_coordinate"])), 1/(clock.get_fps() + 1e-07), 5, (WIDTH/2, HEIGHT/2))
-    cameraObject.x = clamp(cameraObject.x, 0, WIDTH)
-    cameraObject.y = clamp(cameraObject.y, 0, HEIGHT)
-    print(player_class_dictionary_global["y_coordinate"])
-    print(player_class_dictionary_global["x_coordinate"])
+        else:
+            attack_now = False
 
+
+
+    #refreshing the camera view
+    slide_to(cameraObject,(int(player_class_dictionary_global["x_coordinate"]), int(player_class_dictionary_global["y_coordinate"])), 1/(clock.get_fps() + 1e-07), 7, (WIDTH/2, HEIGHT/2))
+    # camera lock to prevent the camera from going off the map
+    cameraObject.x = clamp(cameraObject.x, 0, 1720)
+    cameraObject.y = clamp(cameraObject.y, 0, 780)
+    # window graphic update
     redrawGameWindow()
 
+send(DISCONNECT_MESSAGE)
 pygame.quit()
