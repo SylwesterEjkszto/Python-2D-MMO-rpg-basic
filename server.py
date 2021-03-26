@@ -106,7 +106,7 @@ def handler_client(conn, addr):
                 users_login_database_pickle = open(f"characters/{proper_user_name_dict['proper_username']}.pkl", "rb")
                 smth = pickle.load(users_login_database_pickle)
                 users_login_database_pickle.close()
-                print(vars(smth))
+                #print(vars(smth))
                 timer = time.time()
 
     conn.close()

@@ -12,7 +12,7 @@ from Attack import *
 import time
 
 # permanent
-HEADER = 64
+HEADER = 2048
 PORT = 5050
 FORMAT = 'utf-8'
 # usage in send() function will disconnect from serwer
@@ -33,13 +33,13 @@ player_class_dictionary_global = {}
 # main window setup
 WIDTH = 1280
 HEIGHT = 720
-#WIDTH = ctypes.windll.user32.GetSystemMetrics(0)
-#HEIGHT = ctypes.windll.user32.GetSystemMetrics(1)
+# WIDTH = ctypes.windll.user32.GetSystemMetrics(0)
+# HEIGHT = ctypes.windll.user32.GetSystemMetrics(1)
 root = tk.Tk()
 root.state("zoomed")
 root.geometry(f'{WIDTH}x{HEIGHT}')
 root.title('Samurai no jikan')
-player_object_saver  = {}
+player_object_saver = {}
 # Clans dictionary used for function character_clan_answer_logic which chose class in time of first login
 clans_dictionary_with_answers = {"Raitoningu": {"firstquestion": 1,
                                                 "name": "Raitoningu",
@@ -324,8 +324,7 @@ def character_clan_answers_logic(first_question_answer, second_question_answer, 
             player_class_dictionary_global[key] = player_class_dictionary[key]
         print(player_class_dictionary_global)
         # open main game loop
-        #main_game_loop()
-
+        # main_game_loop()
 
 
 # destroy graphics elements included in graphics_elemts list
@@ -343,7 +342,7 @@ def second_question_window():
     background_first_question_label = tk.Label(root, image=resized_first_question_background_resized)
     background_first_question_label.place(x=0, y=0)
     first_asnwer_button = Button(root, text="thief", padx=40, pady=9,
-                               command=lambda: get_1_answer_2_question_button_command(), bg="#439f9c")
+                                 command=lambda: get_1_answer_2_question_button_command(), bg="#439f9c")
     first_asnwer_button.pack()
     first_asnwer_button.place(x=550, y=150)
     secondAnswerButton = Button(root, text="dog trainer", padx=40, pady=9,
@@ -611,13 +610,13 @@ def login_button_command(usernameTextBox=None, passwordTextBox=None):
         for key in fist_pickle_in_dict:
             player_class_dictionary_global[key] = fist_pickle_in_dict[key]
 
-
     # account creation function start
     if server_respond == "your account is ready":
         print('funkcja tworzenia postaci')
         destroy_graphic_elements()
         # first question of champion creation
         first_question_window()
+
 
 # Game client
 def login_window():
@@ -643,7 +642,7 @@ def login_window():
     passwordTextBox.place(x=1035, y=570)
     # login button setup
     login_button = Button(root, text="login", padx=40, pady=9,
-                      command=lambda: login_button_command(usernameTextBox, passwordTextBox), bg="#439f9c")
+                          command=lambda: login_button_command(usernameTextBox, passwordTextBox), bg="#439f9c")
     login_button.pack()
     login_button.place(x=1150, y=550)
     # add elements to destroy list
@@ -663,23 +662,27 @@ def login_window():
 # start of program
 login_window()
 active_players = {}
-transparent = (0,0,0,0)
+transparent = (0, 0, 0, 0)
+
+
 # End of tkinter start of pygame
 
 # camera customization
 class Camera:
-   def __init__(self, x, y):
-       self.x = x
-       self.y = y
-cameraObject = Camera(0,0)
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
 
 
-#camra blocakde
+cameraObject = Camera(0, 0)
+
+
+# camra blocakde
 def clamp(value, minimum=0.0, maximum=1.0):
     return minimum if value < minimum else maximum if value > maximum else value
 
 
-#camera movement
+# camera movement
 def slide_to(camera, destination, dt, speed_factor=0.5, anchor_point=None):
     if anchor_point is None:
         anchor_point = (0, 0)
@@ -691,27 +694,37 @@ def slide_to(camera, destination, dt, speed_factor=0.5, anchor_point=None):
     camera.x += (destination[0] - camera.x - anchor_point[0]) * fac
     camera.y += (destination[1] - camera.y - anchor_point[1]) * fac
 
+
 # map object loader
-def map_object_load(string_path_to_image,x_position,y_position,x_fix,y_fix,texture_hitbox_width,texture_hitbox_height):
+def map_object_load(string_path_to_image, x_position, y_position, x_fix, y_fix, texture_hitbox_width,
+                    texture_hitbox_height):
     texture_name = pygame.image.load(string_path_to_image)
     win.blit(texture_name, (x_position - cameraObject.x, y_position - cameraObject.y))
-    texture_hitbox = (x_position + x_fix - cameraObject.x, y_position + y_fix - cameraObject.y,texture_hitbox_width,texture_hitbox_height)
+    texture_hitbox = (x_position + x_fix - cameraObject.x, y_position + y_fix - cameraObject.y, texture_hitbox_width,
+                      texture_hitbox_height)
     pygame.draw.rect(win, (255, 0, 0), texture_hitbox, 2)
 
+
 # make object for collision
-def collision_maker(x_position,y_position,x_fix,y_fix,hitbox_width,htibox_height,dict_name,dict_key_string):
-    texture_hitbox = (x_position + x_fix - cameraObject.x, y_position + y_fix - cameraObject.y,hitbox_width,htibox_height)
+def collision_maker(x_position, y_position, x_fix, y_fix, hitbox_width, htibox_height, dict_name, dict_key_string):
+    texture_hitbox = (
+    x_position + x_fix - cameraObject.x, y_position + y_fix - cameraObject.y, hitbox_width, htibox_height)
     collision_box = pygame.Rect(texture_hitbox)
     dict_name[dict_key_string] = collision_box
+
 
 # update screen images
 def redrawGameWindow():
     global walkCount
-    #background draw
-    win.blit(bg, (0 - cameraObject.x, 0-cameraObject.y))
-
-    #server communication
-    send(f"update &{player_class_dictionary_global['x_coordinate']} & {player_class_dictionary_global['y_coordinate']} & {player_class_dictionary_global['map']}")
+    # background draw
+    win.blit(bg, (0 - cameraObject.x, 0 - cameraObject.y))
+    skills_icon = pygame.image.load("icons/skills.png")
+    skills_menu.draw(win)
+    win.blit(skills_icon, (1146, 670))
+    pygame.draw.rect(win, (255, 0, 0), (1146, 670, 40, 40), 2)
+    # server communication
+    send(
+        f"update &{player_class_dictionary_global['x_coordinate']} & {player_class_dictionary_global['y_coordinate']} & {player_class_dictionary_global['map']}")
     server_respond_for_redraw = (client.recv(2048))
     pickle_from_server_update = pickle.loads(server_respond_for_redraw)
     # activity on server checker
@@ -719,62 +732,125 @@ def redrawGameWindow():
     # players update
     for key in pickle_from_server_update:
         active_players[key] = (pickle_from_server_update[key])
+
     # Drawing function
     def first_map_draw_function():
-        map_object_load('assets/temple.png',230,0,0,0,600,360)
+        map_object_load('assets/temple.png', 230, 0, 0, 0, 600, 360)
         for key in active_players:
             if active_players[key]['active'] == "active":
                 if 'assets/pierwszamapa.png' in active_players[key]["map"]:
                     char = pygame.image.load(active_players[key]["asset"])
-                    win.blit(char, (int(active_players[key]['x_coordinate']) - cameraObject.x,int(active_players[key]['y_coordinate']) - cameraObject.y))
-        map_object_load("map_elements/drzwi.png",1420,1390,20,15,55,64)
-        map_object_load("map_elements/drzwi.png",1470,1390,20,15,55,64)
+                    win.blit(char, (int(active_players[key]['x_coordinate']) - cameraObject.x,
+                                    int(active_players[key]['y_coordinate']) - cameraObject.y))
+        map_object_load("map_elements/drzwi.png", 1420, 1390, 20, 15, 55, 64)
+        map_object_load("map_elements/drzwi.png", 1470, 1390, 20, 15, 55, 64)
 
-        player_hitbox = (player_class_dictionary_global['x_coordinate'] + 17 - cameraObject.x, player_class_dictionary_global['y_coordinate'] + 11 - cameraObject.y, 29, 52)
+        player_hitbox = (player_class_dictionary_global['x_coordinate'] + 17 - cameraObject.x,
+                         player_class_dictionary_global['y_coordinate'] + 11 - cameraObject.y, 29, 52)
         pygame.draw.rect(win, (255, 0, 0), player_hitbox, 2)
         goblin_text = pygame.image.load(f'{goblin.asset}')
-        win.blit(goblin_text,(goblin.x-cameraObject.x,goblin.y-cameraObject.y))
+        win.blit(goblin_text, (goblin.x - cameraObject.x, goblin.y - cameraObject.y))
         goblin.hitbox = (goblin.x - cameraObject.x + 17, goblin.y - cameraObject.y + 2, 31, 57)
         pygame.draw.rect(win, (255, 0, 0), goblin.hitbox, 2)
         Howa.collision_redbox_draw()
         Jiba.collision_redbox_draw()
+
     if "assets/pierwszamapa.png" in player_class_dictionary_global["map"]:
         first_map_draw_function()
     pygame.display.update()
 
-#Collisions
+
+# Collisions
 def collision_first_map():
     goblin.hitbox = (goblin.x - cameraObject.x + 17, goblin.y - cameraObject.y + 2, 31, 57)
     goblin_test = pygame.Rect(goblin.hitbox)
     first_map_colision_dict["1"] = goblin_test
-    collision_maker(230,0,0,0,600,360,first_map_colision_dict,"2")
-    collision_maker(1420,1390,20,15,55,64,first_map_colision_dict,"portal1")
-    collision_maker(1470,1390,20,15,55,64,first_map_colision_dict,"portal2")
+    collision_maker(230, 0, 0, 0, 600, 360, first_map_colision_dict, "2")
+    collision_maker(1420, 1390, 20, 15, 55, 64, first_map_colision_dict, "portal1")
+    collision_maker(1470, 1390, 20, 15, 55, 64, first_map_colision_dict, "portal2")
 
-#Attacks
+
+# Skills menu
+class SkillsMenu():
+    def __init__(self,rows,cols):
+        self.skill_slots = []
+        self.display_skills_menu = False
+        self.rows = rows
+        self.cols = cols
+        self.total_slots = self.rows * self.cols
+        self.appendSlots()
+        self.menu_image = "map_elements/skills_menu.png"
+        self.slots_collisions = []
+
+    def toggle_skill_menu(self):
+        self.display_skills_menu = not self.display_skills_menu
+    def appendSlots(self):
+        while len(self.skill_slots) != self.total_slots:
+            for x in range(2000 // 2 - ((40 + 2) * self.cols) // 2,
+                           2000 // 2 + ((40 + 2) * self.cols) // 2, 40 + 2):
+                for y in range(400, 400 + 40 * self.rows, 40 + 2):
+                    self.skill_slots.append(InventorySlot(x, y))
+                    self.slots_collisions.append(pygame.Rect(x,y,40,40))
+    def draw(self,screen):
+        if self.display_skills_menu:
+            skill_menu_img = pygame.image.load("map_elements/skills_menu.png")
+            screen.blit(skill_menu_img,(865,370))
+            for slot in self.skill_slots:
+                slot.draw(screen)
+            for slot in  self.skill_slots:
+                slot.drawItems(screen)
+
+    def addSkill(self, item, slot=None):
+        if slot == None:
+            for slots in self.skill_slots:
+                if slots.skill == None:
+                    slots.skill = item
+                    break
+class InventorySlot:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.skill = None
+
+    def draw(self, screen):
+        return pygame.draw.rect(screen, (255, 255, 255), (self.x, self.y, 40, 40))
+
+    def drawItems(self, screen):
+        if self.skill != None and not self.skill.is_moving:
+            self.image = pygame.image.load(self.skill.img).convert_alpha()
+            screen.blit(self.image, (self.x, self.y))
+        if self.skill != None and self.skill.is_moving:
+            mousepos1 = pygame.mouse.get_pos()
+            self.image = pygame.image.load(self.skill.img).convert_alpha()
+            screen.blit(self.image, (mousepos1[0] - 20, mousepos1[1] - 20))
+# Attacks
 class Attack():
-    def __init__(self,width_and_hight_of_skill_area,name,dmg,texture):
+    def __init__(self, width_and_hight_of_skill_area, name, dmg, texture,image):
         self.hitbox = width_and_hight_of_skill_area
         self.name = name
         self.dmg = dmg
         self.description = ""
         self.texture = texture
+        self.img = image
+        self.is_moving = False
     # For enginge collisions
     def attack_collision_maker(name):
         x_fix = (name.hitbox / 4) - 35
-        y_fix = (name.hitbox /4) - 40
+        y_fix = (name.hitbox / 4) - 40
         parameter = name.hitbox / 2
         attack_hitbox = ((int(player_class_dictionary_global["x_coordinate"])) - cameraObject.x - int(x_fix),
-                         (int(player_class_dictionary_global["y_coordinate"]) - cameraObject.y - int(y_fix)), int(parameter),
+                         (int(player_class_dictionary_global["y_coordinate"]) - cameraObject.y - int(y_fix)),
+                         int(parameter),
                          int(parameter))
         pygame.draw.rect(win, (255, 0, 0), attack_hitbox, 2)
         attack_collision = pygame.Rect(attack_hitbox)
         if attack_collision.colliderect(first_map_colision_dict["1"]):
             print("hit")
+
     # Draw visual for checking
     def collision_redbox_draw(name):
         x_fix = (name.hitbox / 4) - 35
-        y_fix = (name.hitbox /4) -40
+        y_fix = (name.hitbox / 4) - 40
         parameter = name.hitbox / 2
         attack_hitbox = ((int(player_class_dictionary_global["x_coordinate"])) - cameraObject.x - int(x_fix),
                          (int(player_class_dictionary_global["y_coordinate"]) - cameraObject.y - int(y_fix)),
@@ -782,13 +858,17 @@ class Attack():
                          int(parameter))
         pygame.draw.rect(win, (255, 0, 0), attack_hitbox, 2)
 
-# Attacks declarations
-Jiba = Attack(400,"Jiba",1,"assets/jiba1.png")
-Howa = Attack(200,"Howa",0,"assets/jiba.png")
-attacks_list = [Jiba,Howa]
 
-#Collisions dicts
-first_map_colision_dict ={}
+# Attacks declarations
+Jiba = Attack(400, "Jiba", 1, "assets/jiba1.png", "icons/jiba.png")
+Howa = Attack(200, "Howa", 0, "assets/jiba.png", "icons/jiba.png")
+attacks_list = [Jiba, Howa]
+
+# Skills menu declaration
+skills_menu = SkillsMenu(5,5)
+skills_menu.addSkill(Jiba)
+# Collisions dicts
+first_map_colision_dict = {}
 list_of_map_colisions = [first_map_colision_dict]
 
 # pygame window basic setup
@@ -803,11 +883,11 @@ walkCount = 0
 # velocity - speed of movement
 vel = 5
 pygame.init()
-win = pygame.display.set_mode((WIDTH,HEIGHT))
+win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Samurai no jikan")
 
 # cd for attack timer
-attack_cd= time.time()
+attack_cd = time.time()
 
 # Variable for collision checker
 last_used_move_key = ""
@@ -815,9 +895,10 @@ last_used_move_key = ""
 # main game loop
 while run_pygame == "1":
     clock.tick(30)
-
+    skills_menu_collision = pygame.Rect((1146, 670, 40, 40))
     # collisions quick setup
-    player_hitbox = (player_class_dictionary_global['x_coordinate'] + 17 - cameraObject.x, player_class_dictionary_global['y_coordinate'] + 11 - cameraObject.y, 29, 52)
+    player_hitbox = (player_class_dictionary_global['x_coordinate'] + 17 - cameraObject.x,
+                     player_class_dictionary_global['y_coordinate'] + 11 - cameraObject.y, 29, 52)
     player_collision_rect = pygame.Rect(player_hitbox)
     if 'assets/pierwszamapa.png' in player_class_dictionary_global["map"]:
         collision_first_map()
@@ -826,12 +907,27 @@ while run_pygame == "1":
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if pygame.mouse.get_pressed(num_buttons=3)[0]:
+                pos = pygame.mouse.get_pos()
+                x_mouse_pos = pos[0]
+                y_mouse_pos = pos[1]
+                mouse_collision = pygame.Rect(x_mouse_pos, y_mouse_pos, 1, 1)
+                print(pos)
+                if mouse_collision.colliderect(skills_menu_collision):
+                    print('skills menu')
+                    skills_menu.toggle_skill_menu()
+                #for i in range(len(skills_menu.slots_collisions)):
+                    #print(skills_menu.slots_collisions[i])
+                    #if mouse_collision.colliderect(skills_menu.slots_collisions[i]):
+                        #pass
+
     keys = pygame.key.get_pressed()
 
     # movement right left up down events
 
-    if keys[pygame.K_LEFT]: #and int(player_class_dictionary_global["x_coordinate"]) -vel > 0:
-        #update player position data
+    if keys[pygame.K_LEFT]:  # and int(player_class_dictionary_global["x_coordinate"]) -vel > 0:
+        # update player position data
         last_used_move_key = "left"
         collision_count = 0
         for key in first_map_colision_dict:
@@ -839,21 +935,20 @@ while run_pygame == "1":
                 collision_count += 1
                 player_class_dictionary_global["x_coordinate"] += vel
         if collision_count == 0 and keys[pygame.K_RIGHT] == False:
-            player_class_dictionary_global["x_coordinate"] -=  vel
-    elif keys[pygame.K_RIGHT]:#and int(player_class_dictionary_global["x_coordinate"]) + vel < 2950:
-        #update player position data
+            player_class_dictionary_global["x_coordinate"] -= vel
+    elif keys[pygame.K_RIGHT]:  # and int(player_class_dictionary_global["x_coordinate"]) + vel < 2950:
+        # update player position data
         last_used_move_key = "right"
         collision_count = 0
         for key in first_map_colision_dict:
             if player_collision_rect.colliderect(first_map_colision_dict[key]):
                 collision_count += 1
                 player_class_dictionary_global["x_coordinate"] -= vel
-        if collision_count ==0 and keys[pygame.K_LEFT] == False:
+        if collision_count == 0 and keys[pygame.K_LEFT] == False:
             player_class_dictionary_global["x_coordinate"] += vel
 
-
-    if keys[pygame.K_UP]: #and int(player_class_dictionary_global["y_coordinate"]) - vel > 0:
-        #update player position data
+    if keys[pygame.K_UP]:  # and int(player_class_dictionary_global["y_coordinate"]) - vel > 0:
+        # update player position data
         last_used_move_key = "up"
         collision_count = 0
         for key in first_map_colision_dict:
@@ -861,9 +956,9 @@ while run_pygame == "1":
                 collision_count += 1
                 player_class_dictionary_global["y_coordinate"] += 10
         if collision_count == 0 and keys[pygame.K_DOWN] == False:
-            player_class_dictionary_global["y_coordinate"] -=  vel
-    elif keys[pygame.K_DOWN]: #and int(player_class_dictionary_global["y_coordinate"]) + vel < 2935:
-        #update player position data
+            player_class_dictionary_global["y_coordinate"] -= vel
+    elif keys[pygame.K_DOWN]:  # and int(player_class_dictionary_global["y_coordinate"]) + vel < 2935:
+        # update player position data
         last_used_move_key = "down"
         collision_count = 0
         for key in first_map_colision_dict:
@@ -874,41 +969,45 @@ while run_pygame == "1":
             player_class_dictionary_global["y_coordinate"] += vel
 
     # portal logic setup
-    if player_collision_rect.colliderect(first_map_colision_dict["portal1"]) or player_collision_rect.colliderect(first_map_colision_dict["portal2"]):
+    if player_collision_rect.colliderect(first_map_colision_dict["portal1"]) or player_collision_rect.colliderect(
+            first_map_colision_dict["portal2"]):
         player_class_dictionary_global["map"] = "assets/bg.jpg"
         player_class_dictionary_global["x_coordinate"] = 5
         player_class_dictionary_global["y_coordinate"] = 5
         bg = pygame.image.load("assets/bg.jpg")
 
-    #collision fixer
+    # collision fixer
     collision_count = 0
     for key in first_map_colision_dict:
         if player_collision_rect.colliderect(first_map_colision_dict[key]):
             collision_count += 1
-    if last_used_move_key == "up" and collision_count >0:
-            player_class_dictionary_global["y_coordinate"] += 10
-    if last_used_move_key == "down" and collision_count >0:
-            player_class_dictionary_global["y_coordinate"] -= 10
-    if last_used_move_key == "left" and collision_count >0:
-            player_class_dictionary_global["x_coordinate"] += 10
-    if last_used_move_key == "right" and collision_count >0:
-            player_class_dictionary_global["x_coordinate"] -= 10
+    if last_used_move_key == "up" and collision_count > 0:
+        player_class_dictionary_global["y_coordinate"] += 10
+    if last_used_move_key == "down" and collision_count > 0:
+        player_class_dictionary_global["y_coordinate"] -= 10
+    if last_used_move_key == "left" and collision_count > 0:
+        player_class_dictionary_global["x_coordinate"] += 10
+    if last_used_move_key == "right" and collision_count > 0:
+        player_class_dictionary_global["x_coordinate"] -= 10
 
-    #attack_collision_maker(Jiba)
+    # attack_collision_maker(Jiba)
     Jiba.attack_collision_maker()
 
     # X and Y checker
     if keys[pygame.K_SPACE]:
-        #test of cooldowns
-        if time.time() - attack_cd > 3:  # if its been 1 second
-            attack_now = True
-            attack_cd = time.time()
-            print(player_class_dictionary_global["x_coordinate"])
-            print(player_class_dictionary_global["y_coordinate"])
+        # test of cooldowns
+        #if time.time() - attack_cd > 3:  # if its been 1 second
+            #attack_now = True
+            #attack_cd = time.time()
+        print(player_class_dictionary_global["x_coordinate"])
+        print(player_class_dictionary_global["y_coordinate"])
+        print(skills_menu.skill_slots[0].skill.img)
+        print(vars(skills_menu.skill_slots[0]))
 
-
-    #refreshing the camera view
-    slide_to(cameraObject,(int(player_class_dictionary_global["x_coordinate"]), int(player_class_dictionary_global["y_coordinate"])), 1/(clock.get_fps() + 1e-07), 7, (WIDTH/2, HEIGHT/2))
+    # refreshing the camera view
+    slide_to(cameraObject,
+             (int(player_class_dictionary_global["x_coordinate"]), int(player_class_dictionary_global["y_coordinate"])),
+             1 / (clock.get_fps() + 1e-07), 7, (WIDTH / 2, HEIGHT / 2))
 
     # camera lock to prevent the camera from going off the map
     cameraObject.x = clamp(cameraObject.x, 0, 1720)
