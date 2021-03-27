@@ -1,17 +1,14 @@
 import socket
 import tkinter as tk
-from tkinter import *
-from PIL import Image, ImageTk
-import ctypes
+from PIL import ImageTk
 import random
 import pickle
 from Player import *
 import pygame
-from EnemyClass import *
 from Attack import *
 import time
 
-# permanent
+# permament network variables
 HEADER = 2048
 PORT = 5050
 FORMAT = 'utf-8'
@@ -22,6 +19,7 @@ SERVER = "192.168.137.1"
 ADDR = (SERVER, PORT)
 # player(account) username for further use
 username = ""
+# network setup
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
 # list of elements to destroy
@@ -33,12 +31,11 @@ player_class_dictionary_global = {}
 # main window setup
 WIDTH = 1280
 HEIGHT = 720
-# WIDTH = ctypes.windll.user32.GetSystemMetrics(0)
-# HEIGHT = ctypes.windll.user32.GetSystemMetrics(1)
 root = tk.Tk()
 root.state("zoomed")
 root.geometry(f'{WIDTH}x{HEIGHT}')
 root.title('Samurai no jikan')
+# Storage for first server communication
 player_object_saver = {}
 # Clans dictionary used for function character_clan_answer_logic which chose class in time of first login
 clans_dictionary_with_answers = {"Raitoningu": {"firstquestion": 1,
@@ -226,9 +223,9 @@ clans_list_after_fourth_question = []
 
 
 # thanks to that using "tab" change the widget insted of making space
-def focus_next_widget(event):
-    event.widget.tk_focusNext().focus()
-    return ("break")
+def focus_next_widget(tkinter_event):
+    tkinter_event.widget.tk_focusNext().focus()
+    return "break"
 
 
 # comunication with server sending message and comented line is for taking responds
@@ -239,8 +236,7 @@ def send(msg):
     send_length += b' ' * (HEADER - len(send_length))
     client.send(send_length)
     client.send(message)
-    # server_respond = (client.recv(2048).decode(FORMAT))
-    # print(server_respond)
+
 
 
 # first time login - character class choice system
@@ -253,52 +249,52 @@ def character_clan_answers_logic(first_question_answer, second_question_answer, 
     third_question = third_question_answer
     fourth_question = fourth_question_answer
     if first_question == "1":
-        for i in range(len(clans_list)):
-            if clans_dictionary_with_answers[clans_list[i]]["firstquestion"] == 1:
-                clans_list_after_first_question.append(clans_dictionary_with_answers[clans_list[i]]["name"])
+        for acctual_i in range(len(clans_list)):
+            if clans_dictionary_with_answers[clans_list[acctual_i]]["firstquestion"] == 1:
+                clans_list_after_first_question.append(clans_dictionary_with_answers[clans_list[acctual_i]]["name"])
     if first_question == "2":
-        for i in range(len(clans_list)):
-            if clans_dictionary_with_answers[clans_list[i]]["firstquestion"] == 2:
-                clans_list_after_first_question.append(clans_dictionary_with_answers[clans_list[i]]["name"])
+        for acctual_i in range(len(clans_list)):
+            if clans_dictionary_with_answers[clans_list[acctual_i]]["firstquestion"] == 2:
+                clans_list_after_first_question.append(clans_dictionary_with_answers[clans_list[acctual_i]]["name"])
     if first_question == "3":
-        for i in range(len(clans_list)):
-            if clans_dictionary_with_answers[clans_list[i]]["firstquestion"] == 3:
-                clans_list_after_first_question.append(clans_dictionary_with_answers[clans_list[i]]["name"])
+        for acctual_i in range(len(clans_list)):
+            if clans_dictionary_with_answers[clans_list[acctual_i]]["firstquestion"] == 3:
+                clans_list_after_first_question.append(clans_dictionary_with_answers[clans_list[acctual_i]]["name"])
     if first_question == "4":
-        for i in range(len(clans_list)):
-            if clans_dictionary_with_answers[clans_list[i]]["firstquestion"] == 4:
-                clans_list_after_first_question.append(clans_dictionary_with_answers[clans_list[i]]["name"])
+        for acctual_i in range(len(clans_list)):
+            if clans_dictionary_with_answers[clans_list[acctual_i]]["firstquestion"] == 4:
+                clans_list_after_first_question.append(clans_dictionary_with_answers[clans_list[acctual_i]]["name"])
     if second_question == "1":
-        for i in range(len(clans_list_after_first_question)):
-            if clans_dictionary_with_answers[clans_list_after_first_question[i]]["secondquestion"] == 1:
+        for acctual_i in range(len(clans_list_after_first_question)):
+            if clans_dictionary_with_answers[clans_list_after_first_question[acctual_i]]["secondquestion"] == 1:
                 clans_list_after_second_question.append(
-                    clans_dictionary_with_answers[clans_list_after_first_question[i]]["name"])
+                    clans_dictionary_with_answers[clans_list_after_first_question[acctual_i]]["name"])
     if second_question == "2":
-        for i in range(len(clans_list_after_first_question)):
-            if clans_dictionary_with_answers[clans_list_after_first_question[i]]["secondquestion"] == 2:
+        for acctual_i in range(len(clans_list_after_first_question)):
+            if clans_dictionary_with_answers[clans_list_after_first_question[acctual_i]]["secondquestion"] == 2:
                 clans_list_after_second_question.append(
-                    clans_dictionary_with_answers[clans_list_after_first_question[i]]["name"])
+                    clans_dictionary_with_answers[clans_list_after_first_question[acctual_i]]["name"])
     if third_question == "1":
-        for i in range(len(clans_list_after_second_question)):
-            if clans_dictionary_with_answers[clans_list_after_second_question[i]]["thirdquestion"] == 1:
+        for acctual_i in range(len(clans_list_after_second_question)):
+            if clans_dictionary_with_answers[clans_list_after_second_question[acctual_i]]["thirdquestion"] == 1:
                 clans_list_after_third_question.append(
-                    clans_dictionary_with_answers[clans_list_after_second_question[i]]["name"])
+                    clans_dictionary_with_answers[clans_list_after_second_question[acctual_i]]["name"])
     if third_question == "2":
-        for i in range(len(clans_list_after_second_question)):
-            if clans_dictionary_with_answers[clans_list_after_second_question[i]]["thirdquestion"] == 2:
+        for acctual_i in range(len(clans_list_after_second_question)):
+            if clans_dictionary_with_answers[clans_list_after_second_question[acctual_i]]["thirdquestion"] == 2:
                 clans_list_after_third_question.append(
-                    clans_dictionary_with_answers[clans_list_after_second_question[i]]["name"])
+                    clans_dictionary_with_answers[clans_list_after_second_question[acctual_i]]["name"])
     if fourth_question == "1":
-        for i in range(len(clans_list_after_third_question)):
-            if clans_dictionary_with_answers[clans_list_after_third_question[i]]["fourthquestion"] == 1:
+        for acctual_i in range(len(clans_list_after_third_question)):
+            if clans_dictionary_with_answers[clans_list_after_third_question[acctual_i]]["fourthquestion"] == 1:
                 clans_list_after_fourth_question.append(
-                    clans_dictionary_with_answers[clans_list_after_third_question[i]]["name"])
+                    clans_dictionary_with_answers[clans_list_after_third_question[acctual_i]]["name"])
                 character_clan_answers_logic_checker = 1
     if fourth_question == "2":
-        for i in range(len(clans_list_after_third_question)):
-            if clans_dictionary_with_answers[clans_list_after_third_question[i]]["fourthquestion"] == 2:
+        for acctual_i in range(len(clans_list_after_third_question)):
+            if clans_dictionary_with_answers[clans_list_after_third_question[acctual_i]]["fourthquestion"] == 2:
                 clans_list_after_fourth_question.append(
-                    clans_dictionary_with_answers[clans_list_after_third_question[i]]["name"])
+                    clans_dictionary_with_answers[clans_list_after_third_question[acctual_i]]["name"])
                 character_clan_answers_logic_checker = 1
     # when everything works fine that is final step which generate final class and send information to server
     if character_clan_answers_logic_checker == 1:
@@ -329,9 +325,9 @@ def character_clan_answers_logic(first_question_answer, second_question_answer, 
 
 # destroy graphics elements included in graphics_elemts list
 def destroy_graphic_elements():
-    for i in range(len(graphics_elements)):
-        graphics_elements[i].destroy()
-        i += 1
+    for graphic_element in range(len(graphics_elements)):
+        graphics_elements[graphic_element].destroy()
+        graphic_element += 1
 
 
 # open second question window in character creation
@@ -345,22 +341,22 @@ def second_question_window():
                                  command=lambda: get_1_answer_2_question_button_command(), bg="#439f9c")
     first_asnwer_button.pack()
     first_asnwer_button.place(x=550, y=150)
-    secondAnswerButton = Button(root, text="dog trainer", padx=40, pady=9,
-                                command=lambda: get_2_answer_2_question_button_command(), bg="#439f9c")
-    secondAnswerButton.pack()
-    secondAnswerButton.place(x=550, y=250)
-    thirdAnswerButton = Button(root, text="medical assistant", padx=40, pady=9,
-                               command=lambda: get_3_answer_2_question_button_command(), bg="#439f9c")
-    thirdAnswerButton.pack()
-    thirdAnswerButton.place(x=550, y=350)
-    fourthAnswerButton = Button(root, text="herbal merchant", padx=40, pady=9,
-                                command=lambda: get_4_answer_2_question_button_command(), bg="#439f9c")
-    fourthAnswerButton.pack()
-    fourthAnswerButton.place(x=550, y=450)
+    second_answer_button = Button(root, text="dog trainer", padx=40, pady=9,
+                                  command=lambda: get_2_answer_2_question_button_command(), bg="#439f9c")
+    second_answer_button.pack()
+    second_answer_button.place(x=550, y=250)
+    third_answer_button = Button(root, text="medical assistant", padx=40, pady=9,
+                                 command=lambda: get_3_answer_2_question_button_command(), bg="#439f9c")
+    third_answer_button.pack()
+    third_answer_button.place(x=550, y=350)
+    fourth_answer_button = Button(root, text="herbal merchant", padx=40, pady=9,
+                                  command=lambda: get_4_answer_2_question_button_command(), bg="#439f9c")
+    fourth_answer_button.pack()
+    fourth_answer_button.place(x=550, y=450)
     graphics_elements.append(first_asnwer_button)
-    graphics_elements.append(thirdAnswerButton)
-    graphics_elements.append(secondAnswerButton)
-    graphics_elements.append(fourthAnswerButton)
+    graphics_elements.append(third_answer_button)
+    graphics_elements.append(second_answer_button)
+    graphics_elements.append(fourth_answer_button)
     graphics_elements.append(background_first_question_label)
     root.mainloop()
 
@@ -370,29 +366,29 @@ def first_question_window():
     question_menu_background_image = Image.open('assets/character_creation_background_question1.png')
     question_menu_background_image = question_menu_background_image.resize((WIDTH, HEIGHT), Image.ANTIALIAS)
     resized_first_question_background_resized = ImageTk.PhotoImage(question_menu_background_image)
-    backgroundFirstQuestionLabel = tk.Label(root, image=resized_first_question_background_resized)
-    backgroundFirstQuestionLabel.place(x=0, y=0)
-    firstAsnwerButton = Button(root, text="samurai", padx=40, pady=9,
-                               command=lambda: get_1_answer_1_question_button_command(), bg="#439f9c")
-    firstAsnwerButton.pack()
-    firstAsnwerButton.place(x=550, y=150)
-    secondAnswerButton = Button(root, text="assasyn", padx=40, pady=9,
-                                command=lambda: get_2_answer_1_question_button_command(), bg="#439f9c")
-    secondAnswerButton.pack()
-    secondAnswerButton.place(x=550, y=250)
-    thirdAnswerButton = Button(root, text="monk", padx=40, pady=9,
-                               command=lambda: get_3_answer_1_question_button_command(), bg="#439f9c")
-    thirdAnswerButton.pack()
-    thirdAnswerButton.place(x=550, y=350)
-    fourthAnswerButton = Button(root, text="fisherman", padx=40, pady=9,
-                                command=lambda: get_4_answer_1_question_button_command(), bg="#439f9c")
-    fourthAnswerButton.pack()
-    fourthAnswerButton.place(x=550, y=450)
-    graphics_elements.append(firstAsnwerButton)
-    graphics_elements.append(thirdAnswerButton)
-    graphics_elements.append(secondAnswerButton)
-    graphics_elements.append(fourthAnswerButton)
-    graphics_elements.append(backgroundFirstQuestionLabel)
+    background_first_question_label = tk.Label(root, image=resized_first_question_background_resized)
+    background_first_question_label.place(x=0, y=0)
+    first_asnwer_button = Button(root, text="samurai", padx=40, pady=9,
+                                 command=lambda: get_1_answer_1_question_button_command(), bg="#439f9c")
+    first_asnwer_button.pack()
+    first_asnwer_button.place(x=550, y=150)
+    second_answer_button = Button(root, text="assasyn", padx=40, pady=9,
+                                  command=lambda: get_2_answer_1_question_button_command(), bg="#439f9c")
+    second_answer_button.pack()
+    second_answer_button.place(x=550, y=250)
+    third_answer_button = Button(root, text="monk", padx=40, pady=9,
+                                 command=lambda: get_3_answer_1_question_button_command(), bg="#439f9c")
+    third_answer_button.pack()
+    third_answer_button.place(x=550, y=350)
+    fourth_answer_button = Button(root, text="fisherman", padx=40, pady=9,
+                                  command=lambda: get_4_answer_1_question_button_command(), bg="#439f9c")
+    fourth_answer_button.pack()
+    fourth_answer_button.place(x=550, y=450)
+    graphics_elements.append(first_asnwer_button)
+    graphics_elements.append(third_answer_button)
+    graphics_elements.append(second_answer_button)
+    graphics_elements.append(fourth_answer_button)
+    graphics_elements.append(background_first_question_label)
     root.mainloop()
 
 
@@ -401,8 +397,8 @@ def third_question_window():
     question_menu_background_image = Image.open('assets/character_creation_background_question3.png')
     question_menu_background_image = question_menu_background_image.resize((WIDTH, HEIGHT), Image.ANTIALIAS)
     resized_first_question_background_resized = ImageTk.PhotoImage(question_menu_background_image)
-    backgroundFirstQuestionLabel = tk.Label(root, image=resized_first_question_background_resized)
-    backgroundFirstQuestionLabel.place(x=0, y=0)
+    background_first_question_label = tk.Label(root, image=resized_first_question_background_resized)
+    background_first_question_label.place(x=0, y=0)
     firstAsnwerButton = Button(root, text=" trained in sword fighting", padx=40, pady=9,
                                command=lambda: get_1_answer_3_question_button_command(), bg="#439f9c")
     firstAsnwerButton.pack()
@@ -423,7 +419,7 @@ def third_question_window():
     graphics_elements.append(thirdAnswerButton)
     graphics_elements.append(secondAnswerButton)
     graphics_elements.append(fourthAnswerButton)
-    graphics_elements.append(backgroundFirstQuestionLabel)
+    graphics_elements.append(background_first_question_label)
     root.mainloop()
 
 
@@ -590,7 +586,8 @@ def login_button_command(usernameTextBox=None, passwordTextBox=None):
     # get username and surename from login screen
     username = usernameTextBox.get("1.0", "end-1c")
     password = passwordTextBox.get("1.0", "end-1c")
-    # send username and password to server if those parameters exist in db player will login otherwise server will make a new account and character
+    # send username and password to server if those parameters exist in db player will login otherwise server will
+    # make a new account and character
     send(username + "&username " + "`" + password)
     server_respond = (client.recv(2048).decode(FORMAT))
     print(server_respond)
@@ -652,7 +649,8 @@ def login_window():
     graphics_elements.append(backgroundLabel)
     # login instruction textbox
     loginInstrucionText = tk.Label(root, padx=40, pady=20, wraplength=180, justify="left",
-                                   text="Welcome in Samurai no jikan! \n if you do not have an account, the first login will automatically create an account")
+                                   text="Welcome in Samurai no jikan! \n if you do not have an account, the first "
+                                        "login will automatically create an account")
     loginInstrucionText.pack()
     loginInstrucionText.place(x=1025, y=445)
     graphics_elements.append(loginInstrucionText)
@@ -661,11 +659,13 @@ def login_window():
 
 # start of program
 login_window()
+
+# End of tkinter login client start of pygame
+
+
+# dict for update players connected with server
 active_players = {}
-transparent = (0, 0, 0, 0)
 
-
-# End of tkinter start of pygame
 
 # camera customization
 class Camera:
@@ -674,6 +674,7 @@ class Camera:
         self.y = y
 
 
+# declaration of camera object
 cameraObject = Camera(0, 0)
 
 
@@ -705,16 +706,25 @@ def map_object_load(string_path_to_image, x_position, y_position, x_fix, y_fix, 
     pygame.draw.rect(win, (255, 0, 0), texture_hitbox, 2)
 
 
+# draw enemies
+def map_enemy_load(object):
+    texture_name = pygame.image.load(object.asset)
+    win.blit(texture_name, (object.x - cameraObject.x, object.y - cameraObject.y))
+    texture_hitbox = (object.x + object.x_fix - cameraObject.x, object.y + object.y_fix - cameraObject.y, object.width,
+                      object.height)
+    pygame.draw.rect(win, (255, 0, 0), texture_hitbox, 2)
+
+
 # make object for collision
 def collision_maker(x_position, y_position, x_fix, y_fix, hitbox_width, htibox_height, dict_name, dict_key_string):
     texture_hitbox = (
-    x_position + x_fix - cameraObject.x, y_position + y_fix - cameraObject.y, hitbox_width, htibox_height)
+        x_position + x_fix - cameraObject.x, y_position + y_fix - cameraObject.y, hitbox_width, htibox_height)
     collision_box = pygame.Rect(texture_hitbox)
     dict_name[dict_key_string] = collision_box
 
 
 # update screen images
-def redrawGameWindow():
+def redraw_game_window():
     global walkCount
     # background draw
     win.blit(bg, (0 - cameraObject.x, 0 - cameraObject.y))
@@ -748,11 +758,8 @@ def redrawGameWindow():
         player_hitbox = (player_class_dictionary_global['x_coordinate'] + 17 - cameraObject.x,
                          player_class_dictionary_global['y_coordinate'] + 11 - cameraObject.y, 29, 52)
         pygame.draw.rect(win, (255, 0, 0), player_hitbox, 2)
-        goblin_text = pygame.image.load(f'{goblin.asset}')
-        win.blit(goblin_text, (goblin.x - cameraObject.x, goblin.y - cameraObject.y))
-        goblin.hitbox = (goblin.x - cameraObject.x + 17, goblin.y - cameraObject.y + 2, 31, 57)
-        pygame.draw.rect(win, (255, 0, 0), goblin.hitbox, 2)
-        Howa.collision_redbox_draw()
+        map_enemy_load(goblin)
+        # Howa.collision_redbox_draw()
         Jiba.collision_redbox_draw()
 
     if "assets/pierwszamapa.png" in player_class_dictionary_global["map"]:
@@ -771,42 +778,49 @@ def collision_first_map():
 
 
 # Skills menu
-class SkillsMenu():
-    def __init__(self,rows,cols):
+class SkillsMenu:
+    def __init__(self, rows, cols):
         self.skill_slots = []
         self.display_skills_menu = False
         self.rows = rows
         self.cols = cols
         self.total_slots = self.rows * self.cols
-        self.appendSlots()
-        self.menu_image = "map_elements/skills_menu.png"
+        # for mouse events
         self.slots_collisions = []
+        self.append_slots()
+        #background of menu
+        self.menu_image = "map_elements/skills_menu.png"
 
     def toggle_skill_menu(self):
         self.display_skills_menu = not self.display_skills_menu
-    def appendSlots(self):
+
+    # First time slots in menu builder
+    def append_slots(self):
         while len(self.skill_slots) != self.total_slots:
             for x in range(2000 // 2 - ((40 + 2) * self.cols) // 2,
                            2000 // 2 + ((40 + 2) * self.cols) // 2, 40 + 2):
                 for y in range(400, 400 + 40 * self.rows, 40 + 2):
-                    self.skill_slots.append(InventorySlot(x, y))
-                    self.slots_collisions.append(pygame.Rect(x,y,40,40))
-    def draw(self,screen):
+                    self.skill_slots.append(SkillSlot(x, y))
+                    self.slots_collisions.append(pygame.Rect(x, y, 40, 40))
+
+    def draw(self, screen):
         if self.display_skills_menu:
             skill_menu_img = pygame.image.load("map_elements/skills_menu.png")
-            screen.blit(skill_menu_img,(865,370))
+            screen.blit(skill_menu_img, (865, 370))
             for slot in self.skill_slots:
                 slot.draw(screen)
-            for slot in  self.skill_slots:
-                slot.drawItems(screen)
+            for slot in self.skill_slots:
+                slot.draw_items(screen)
 
-    def addSkill(self, item, slot=None):
-        if slot == None:
+    def add_skill(self, item, slot=None):
+        if slot is None:
             for slots in self.skill_slots:
-                if slots.skill == None:
+                if slots.skill is None:
                     slots.skill = item
                     break
-class InventorySlot:
+
+# Slots for skills in skills menu
+class SkillSlot:
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -815,17 +829,38 @@ class InventorySlot:
     def draw(self, screen):
         return pygame.draw.rect(screen, (255, 255, 255), (self.x, self.y, 40, 40))
 
-    def drawItems(self, screen):
-        if self.skill != None and not self.skill.is_moving:
+    def draw_items(self, screen):
+        if self.skill is not None and not self.skill.is_moving:
             self.image = pygame.image.load(self.skill.img).convert_alpha()
             screen.blit(self.image, (self.x, self.y))
-        if self.skill != None and self.skill.is_moving:
+        if self.skill is not None and self.skill.is_moving:
             mousepos1 = pygame.mouse.get_pos()
             self.image = pygame.image.load(self.skill.img).convert_alpha()
             screen.blit(self.image, (mousepos1[0] - 20, mousepos1[1] - 20))
+
+# Enemy Class
+class Enemy():
+    def __init__(self,x,y,x_fix,y_fix,width,height,hp,xp):
+        self.map = 'assets/testmap.png'
+        self.hp = hp
+        self.xp = xp
+        self.asset = "assets/L1E.png"
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.x_fix = x_fix
+        self.y_fix = y_fix
+
+    def hit(self):  # This will display when the enemy is hit
+        print('hit')
+
+goblin = Enemy(1235,580,17,2,31,57,1,1)
+
+
 # Attacks
-class Attack():
-    def __init__(self, width_and_hight_of_skill_area, name, dmg, texture,image):
+class Attack:
+    def __init__(self, width_and_hight_of_skill_area, name, dmg, texture, image):
         self.hitbox = width_and_hight_of_skill_area
         self.name = name
         self.dmg = dmg
@@ -833,19 +868,19 @@ class Attack():
         self.texture = texture
         self.img = image
         self.is_moving = False
+
     # For enginge collisions
-    def attack_collision_maker(name):
-        x_fix = (name.hitbox / 4) - 35
-        y_fix = (name.hitbox / 4) - 40
-        parameter = name.hitbox / 2
+    def attack_collision_maker(self):
+        x_fix = (self.hitbox / 4) - 35
+        y_fix = (self.hitbox / 4) - 40
+        parameter = self.hitbox / 2
         attack_hitbox = ((int(player_class_dictionary_global["x_coordinate"])) - cameraObject.x - int(x_fix),
                          (int(player_class_dictionary_global["y_coordinate"]) - cameraObject.y - int(y_fix)),
                          int(parameter),
                          int(parameter))
         pygame.draw.rect(win, (255, 0, 0), attack_hitbox, 2)
         attack_collision = pygame.Rect(attack_hitbox)
-        if attack_collision.colliderect(first_map_colision_dict["1"]):
-            print("hit")
+        # if attack_collision.colliderect():
 
     # Draw visual for checking
     def collision_redbox_draw(name):
@@ -858,15 +893,15 @@ class Attack():
                          int(parameter))
         pygame.draw.rect(win, (255, 0, 0), attack_hitbox, 2)
 
-
 # Attacks declarations
 Jiba = Attack(400, "Jiba", 1, "assets/jiba1.png", "icons/jiba.png")
 Howa = Attack(200, "Howa", 0, "assets/jiba.png", "icons/jiba.png")
 attacks_list = [Jiba, Howa]
 
 # Skills menu declaration
-skills_menu = SkillsMenu(5,5)
-skills_menu.addSkill(Jiba)
+skills_menu = SkillsMenu(5, 5)
+skills_menu.add_skill(Jiba)
+
 # Collisions dicts
 first_map_colision_dict = {}
 list_of_map_colisions = [first_map_colision_dict]
@@ -882,6 +917,8 @@ walkCount = 0
 
 # velocity - speed of movement
 vel = 5
+
+#main window setup
 pygame.init()
 win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Samurai no jikan")
@@ -917,10 +954,10 @@ while run_pygame == "1":
                 if mouse_collision.colliderect(skills_menu_collision):
                     print('skills menu')
                     skills_menu.toggle_skill_menu()
-                #for i in range(len(skills_menu.slots_collisions)):
-                    #print(skills_menu.slots_collisions[i])
-                    #if mouse_collision.colliderect(skills_menu.slots_collisions[i]):
-                        #pass
+                for i in range(len(skills_menu.slots_collisions)):
+                    # print(skills_menu.slots_collisions[i])
+                    if mouse_collision.colliderect(skills_menu.slots_collisions[i]):
+                        print(skills_menu.skill_slots[i].skill.attack_collision_maker)
 
     keys = pygame.key.get_pressed()
 
@@ -996,9 +1033,9 @@ while run_pygame == "1":
     # X and Y checker
     if keys[pygame.K_SPACE]:
         # test of cooldowns
-        #if time.time() - attack_cd > 3:  # if its been 1 second
-            #attack_now = True
-            #attack_cd = time.time()
+        # if time.time() - attack_cd > 3:  # if its been 1 second
+        # attack_now = True
+        # attack_cd = time.time()
         print(player_class_dictionary_global["x_coordinate"])
         print(player_class_dictionary_global["y_coordinate"])
         print(skills_menu.skill_slots[0].skill.img)
@@ -1014,7 +1051,7 @@ while run_pygame == "1":
     cameraObject.y = clamp(cameraObject.y, 0, 780)
 
     # window graphic update
-    redrawGameWindow()
+    redraw_game_window()
 
 send(DISCONNECT_MESSAGE)
 pygame.quit()
