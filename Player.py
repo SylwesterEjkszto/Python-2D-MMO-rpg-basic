@@ -4,8 +4,14 @@ import pygame
 class Player():
     def __init__(self):
         self.name = ""
-        self.hp = 1
+        self.hp = 50
+        self.max_hp = 50
+        self.energy = 10
+        self.max_energy = 10
         self.xp = 1
+        self.next_lvl = 10
+        self.lvl = 1
+        self.ability_to_learn = 1
         self.clan = ""
         self.map = 'assets/pierwszamapa.png'
         self.x_coordinate = 465

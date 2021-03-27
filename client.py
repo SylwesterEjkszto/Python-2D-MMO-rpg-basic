@@ -238,7 +238,6 @@ def send(msg):
     client.send(message)
 
 
-
 # first time login - character class choice system
 def character_clan_answers_logic(first_question_answer, second_question_answer, third_question_answer,
                                  fourth_question_answer):
@@ -769,8 +768,10 @@ def redraw_game_window():
 
 # Collisions
 def collision_first_map():
-    goblin.hitbox = (goblin.x - cameraObject.x + 17, goblin.y - cameraObject.y + 2, 31, 57)
+    # goblin.hitbox = (goblin.x - cameraObject.x + 17, goblin.y - cameraObject.y + 2, 31, 57)
+    goblin.hitbox_update()
     goblin_test = pygame.Rect(goblin.hitbox)
+
     first_map_colision_dict["1"] = goblin_test
     collision_maker(230, 0, 0, 0, 600, 360, first_map_colision_dict, "2")
     collision_maker(1420, 1390, 20, 15, 55, 64, first_map_colision_dict, "portal1")
@@ -788,7 +789,7 @@ class SkillsMenu:
         # for mouse events
         self.slots_collisions = []
         self.append_slots()
-        #background of menu
+        # background of menu
         self.menu_image = "map_elements/skills_menu.png"
 
     def toggle_skill_menu(self):
@@ -819,6 +820,7 @@ class SkillsMenu:
                     slots.skill = item
                     break
 
+
 # Slots for skills in skills menu
 class SkillSlot:
     def __init__(self, x, y):
@@ -838,10 +840,14 @@ class SkillSlot:
             self.image = pygame.image.load(self.skill.img).convert_alpha()
             screen.blit(self.image, (mousepos1[0] - 20, mousepos1[1] - 20))
 
+
 # Enemy Class
+list_of_enemies = []
+
+
 class Enemy():
-    def __init__(self,x,y,x_fix,y_fix,width,height,hp,xp):
-        self.map = 'assets/testmap.png'
+    def __init__(self, map_img, x, y, x_fix, y_fix, width, height, hp, xp):
+        self.map = map_img
         self.hp = hp
         self.xp = xp
         self.asset = "assets/L1E.png"
@@ -851,11 +857,24 @@ class Enemy():
         self.height = height
         self.x_fix = x_fix
         self.y_fix = y_fix
+        self.hitbox = (0, 0, 0, 0)
+        self.collision = 0
+        self.collisions_append()
 
-    def hit(self):  # This will display when the enemy is hit
-        print('hit')
+    def hitbox_update(self):
+        self.collision = pygame.Rect(self.hitbox)
+        self.hitbox = (
+            self.x - cameraObject.x + self.x_fix, self.y - cameraObject.y + self.y_fix, self.width, self.height)
 
-goblin = Enemy(1235,580,17,2,31,57,1,1)
+    def hit(self,attack):  # This will display when the enemy is hit
+        print('ojojojoj')
+        self.hp -= attack.dmg
+        print(self.hp)
+    def collisions_append(self):
+        list_of_enemies.append(self)
+
+
+goblin = Enemy('assets/testmap.png', 1235, 580, 17, 2, 31, 57, 1, 500)
 
 
 # Attacks
@@ -880,7 +899,11 @@ class Attack:
                          int(parameter))
         pygame.draw.rect(win, (255, 0, 0), attack_hitbox, 2)
         attack_collision = pygame.Rect(attack_hitbox)
-        # if attack_collision.colliderect():
+        for i in range(len(list_of_enemies)):
+            if attack_collision.colliderect(list_of_enemies[i].collision):
+                list_of_enemies[i].hit(self)
+                if list_of_enemies[i]. hp > 1:
+                    player_class_dictionary_global["xp"] = int(player_class_dictionary_global["xp"]) + list_of_enemies[i].xp
 
     # Draw visual for checking
     def collision_redbox_draw(name):
@@ -892,6 +915,7 @@ class Attack:
                          int(parameter),
                          int(parameter))
         pygame.draw.rect(win, (255, 0, 0), attack_hitbox, 2)
+
 
 # Attacks declarations
 Jiba = Attack(400, "Jiba", 1, "assets/jiba1.png", "icons/jiba.png")
@@ -918,7 +942,7 @@ walkCount = 0
 # velocity - speed of movement
 vel = 5
 
-#main window setup
+# main window setup
 pygame.init()
 win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Samurai no jikan")
@@ -940,6 +964,13 @@ while run_pygame == "1":
     if 'assets/pierwszamapa.png' in player_class_dictionary_global["map"]:
         collision_first_map()
 
+    print(player_class_dictionary_global["xp"])
+    #experience update
+    while int(player_class_dictionary_global['xp']) >= int(player_class_dictionary_global["next_lvl"]):
+        player_class_dictionary_global["lvl"] = int(player_class_dictionary_global["lvl"]) + 1
+        print(player_class_dictionary_global["lvl"])
+        player_class_dictionary_global['xp'] = int(player_class_dictionary_global['xp']) - int(player_class_dictionary_global['next_lvl'])
+        player_class_dictionary_global['next_lvl'] = round((int(player_class_dictionary_global['next_lvl']) * 1.5) * int(player_class_dictionary_global['ability_to_learn']))
     # Keys events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -952,12 +983,11 @@ while run_pygame == "1":
                 mouse_collision = pygame.Rect(x_mouse_pos, y_mouse_pos, 1, 1)
                 print(pos)
                 if mouse_collision.colliderect(skills_menu_collision):
-                    print('skills menu')
                     skills_menu.toggle_skill_menu()
                 for i in range(len(skills_menu.slots_collisions)):
-                    # print(skills_menu.slots_collisions[i])
-                    if mouse_collision.colliderect(skills_menu.slots_collisions[i]):
-                        print(skills_menu.skill_slots[i].skill.attack_collision_maker)
+                    if mouse_collision.colliderect(
+                            skills_menu.slots_collisions[i]) and skills_menu.display_skills_menu == True:
+                        skills_menu.skill_slots[i].skill.attack_collision_maker()
 
     keys = pygame.key.get_pressed()
 
@@ -1026,9 +1056,6 @@ while run_pygame == "1":
         player_class_dictionary_global["x_coordinate"] += 10
     if last_used_move_key == "right" and collision_count > 0:
         player_class_dictionary_global["x_coordinate"] -= 10
-
-    # attack_collision_maker(Jiba)
-    Jiba.attack_collision_maker()
 
     # X and Y checker
     if keys[pygame.K_SPACE]:
