@@ -727,10 +727,36 @@ def redraw_game_window():
     global walkCount
     # background draw
     win.blit(bg, (0 - cameraObject.x, 0 - cameraObject.y))
-    skills_icon = pygame.image.load("icons/skills.png")
-    skills_menu.draw(win)
-    win.blit(skills_icon, (1146, 670))
-    pygame.draw.rect(win, (255, 0, 0), (1146, 670, 40, 40), 2)
+    def user_interface():
+        skills_icon = pygame.image.load("icons/skills.png")
+        skills_menu.draw(win)
+        win.blit(skills_icon, (1146, 670))
+        #skills icon border
+        pygame.draw.rect(win, (255, 0, 0), (1146, 670, 40, 40), 2)
+        hp_bar_text = font.render('HP: ' + str(player_object_saver["player"].hp) + "/" + str(player_object_saver['player'].max_hp),True,(0,0,0))
+        pygame.draw.rect(win, (255, 0, 0), (0,0,200,25))
+        acctual_hp_math = 200 / int(player_object_saver['player'].max_hp)
+        pygame.draw.rect(win, (0, 255, 0), (0, 0,( int(player_object_saver['player'].hp * acctual_hp_math)), 25))
+        win.blit(hp_bar_text, (70,5))
+        energy_bar_text = font.render(
+            'EP: ' + str(player_object_saver["player"].energy) + "/" + str(player_object_saver['player'].max_energy), True,
+            (0, 0, 0))
+        pygame.draw.rect(win, (0, 0, 0), (0, 25, 200, 25))
+        acctual_energy_math = 200 / int(player_object_saver['player'].max_energy)
+        pygame.draw.rect(win, (0, 0, 255), (0, 25, (int(player_object_saver['player'].energy * acctual_energy_math)), 25))
+        win.blit(energy_bar_text, (70, 30))
+        lvl_text = font.render("lvl: " + str(player_object_saver["player"].lvl), True,(0,0,0))
+        pygame.draw.rect(win,(255,215,0),(0,50,200,25))
+        win.blit(lvl_text,(70,55))
+        xp_text = font.render("xp: " + str(player_object_saver["player"].xp) + '/' + str(player_object_saver['player'].next_lvl),True,(255,255,255))
+        pygame.draw.rect(win, (0, 0, 0), (0, 75, 200, 25))
+        acctual_xp_math = 200 / int(player_object_saver['player'].next_lvl)
+        pygame.draw.rect(win, (218,165,32),
+                         (0, 75, (int(player_object_saver['player'].xp * acctual_xp_math)), 25))
+        win.blit(xp_text, (70, 80))
+
+
+
     # server communication
     send(
         f"update &{player_object_saver['player'].x} & {player_object_saver['player'].y} & {player_object_saver['player'].map}")
@@ -748,8 +774,10 @@ def redraw_game_window():
         for key in active_players:
             if active_players[key]['active'] == "active":
                 if 'assets/pierwszamapa.png' in active_players[key]["map"]:
-                    pygame.draw.rect(win,(255,0,0),(int(active_players[key]["x"]) + 5 - cameraObject.x, int(active_players[key]['y'])+ 2 - cameraObject.y,int(active_players[key]['max_hp']),8),0,5)
-                    pygame.draw.rect(win,(0,255,0),(int(active_players[key]["x"]) + 5- cameraObject.x, int(active_players[key]['y']) + 2 - cameraObject.y,int(active_players[key]['hp']),8),0,5)
+                    pygame.draw.rect(win,(255,0,0),(int(active_players[key]["x"]) + 5 - cameraObject.x, int(active_players[key]['y']) - cameraObject.y,int(active_players[key]['max_hp']),8),0,5)
+                    pygame.draw.rect(win,(0,255,0),(int(active_players[key]["x"]) + 5- cameraObject.x, int(active_players[key]['y'])  - cameraObject.y,int(active_players[key]['hp']),8),0,5)
+                    character_name = font.render(str(active_players[key]["name"]),True,(0,0,0))
+                    win.blit(character_name,(int(active_players[key]['x']) + 10 - cameraObject.x,int(active_players[key]['y']) - 18 - cameraObject.y))
                     char = pygame.image.load(active_players[key]["asset"])
                     win.blit(char, (int(active_players[key]['x']) - cameraObject.x,
                                     int(active_players[key]['y']) - cameraObject.y))
@@ -762,6 +790,7 @@ def redraw_game_window():
         map_enemy_load(goblin)
         # Howa.collision_redbox_draw()
         Jiba.collision_redbox_draw()
+        user_interface()
 
     if "assets/pierwszamapa.png" in player_object_saver['player'].map:
         first_map_draw_function()
@@ -940,7 +969,6 @@ left = False
 right = False
 attack_now = False
 walkCount = 0
-
 # velocity - speed of movement
 vel = 5
 
@@ -948,6 +976,7 @@ vel = 5
 pygame.init()
 win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Samurai no jikan")
+font = pygame.font.SysFont('arial',15,False,False)
 
 # cd for attack timer
 attack_cd = time.time()
