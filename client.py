@@ -733,7 +733,7 @@ def redraw_game_window():
     pygame.draw.rect(win, (255, 0, 0), (1146, 670, 40, 40), 2)
     # server communication
     send(
-        f"update &{player_class_dictionary_global['x_coordinate']} & {player_class_dictionary_global['y_coordinate']} & {player_class_dictionary_global['map']}")
+        f"update &{player_object_saver['player'].x} & {player_object_saver['player'].y} & {player_object_saver['player'].map}")
     server_respond_for_redraw = (client.recv(2048))
     pickle_from_server_update = pickle.loads(server_respond_for_redraw)
     # activity on server checker
@@ -748,20 +748,22 @@ def redraw_game_window():
         for key in active_players:
             if active_players[key]['active'] == "active":
                 if 'assets/pierwszamapa.png' in active_players[key]["map"]:
+                    pygame.draw.rect(win,(255,0,0),(int(active_players[key]["x"]) + 5 - cameraObject.x, int(active_players[key]['y'])+ 2 - cameraObject.y,int(active_players[key]['max_hp']),8),0,5)
+                    pygame.draw.rect(win,(0,255,0),(int(active_players[key]["x"]) + 5- cameraObject.x, int(active_players[key]['y']) + 2 - cameraObject.y,int(active_players[key]['hp']),8),0,5)
                     char = pygame.image.load(active_players[key]["asset"])
-                    win.blit(char, (int(active_players[key]['x_coordinate']) - cameraObject.x,
-                                    int(active_players[key]['y_coordinate']) - cameraObject.y))
+                    win.blit(char, (int(active_players[key]['x']) - cameraObject.x,
+                                    int(active_players[key]['y']) - cameraObject.y))
         map_object_load("map_elements/drzwi.png", 1420, 1390, 20, 15, 55, 64)
         map_object_load("map_elements/drzwi.png", 1470, 1390, 20, 15, 55, 64)
 
-        player_hitbox = (player_class_dictionary_global['x_coordinate'] + 17 - cameraObject.x,
-                         player_class_dictionary_global['y_coordinate'] + 11 - cameraObject.y, 29, 52)
+        player_hitbox = (player_object_saver['player'].x + 17 - cameraObject.x,
+                         player_object_saver['player'].y + 11 - cameraObject.y, 29, 52)
         pygame.draw.rect(win, (255, 0, 0), player_hitbox, 2)
         map_enemy_load(goblin)
         # Howa.collision_redbox_draw()
         Jiba.collision_redbox_draw()
 
-    if "assets/pierwszamapa.png" in player_class_dictionary_global["map"]:
+    if "assets/pierwszamapa.png" in player_object_saver['player'].map:
         first_map_draw_function()
     pygame.display.update()
 
@@ -893,8 +895,8 @@ class Attack:
         x_fix = (self.hitbox / 4) - 35
         y_fix = (self.hitbox / 4) - 40
         parameter = self.hitbox / 2
-        attack_hitbox = ((int(player_class_dictionary_global["x_coordinate"])) - cameraObject.x - int(x_fix),
-                         (int(player_class_dictionary_global["y_coordinate"]) - cameraObject.y - int(y_fix)),
+        attack_hitbox = (player_object_saver['player'].x - cameraObject.x - int(x_fix),
+                         player_object_saver['player'].y - cameraObject.y - int(y_fix),
                          int(parameter),
                          int(parameter))
         pygame.draw.rect(win, (255, 0, 0), attack_hitbox, 2)
@@ -902,16 +904,16 @@ class Attack:
         for i in range(len(list_of_enemies)):
             if attack_collision.colliderect(list_of_enemies[i].collision):
                 list_of_enemies[i].hit(self)
-                if list_of_enemies[i]. hp > 1:
-                    player_class_dictionary_global["xp"] = int(player_class_dictionary_global["xp"]) + list_of_enemies[i].xp
+                if list_of_enemies[i]. hp < 1:
+                    player_object_saver['player'].xp = player_object_saver['player'].xp + list_of_enemies[i].xp
 
     # Draw visual for checking
     def collision_redbox_draw(name):
         x_fix = (name.hitbox / 4) - 35
         y_fix = (name.hitbox / 4) - 40
         parameter = name.hitbox / 2
-        attack_hitbox = ((int(player_class_dictionary_global["x_coordinate"])) - cameraObject.x - int(x_fix),
-                         (int(player_class_dictionary_global["y_coordinate"]) - cameraObject.y - int(y_fix)),
+        attack_hitbox = (player_object_saver['player'].x - cameraObject.x - int(x_fix),
+                         player_object_saver['player'].y - cameraObject.y - int(y_fix),
                          int(parameter),
                          int(parameter))
         pygame.draw.rect(win, (255, 0, 0), attack_hitbox, 2)
@@ -958,19 +960,19 @@ while run_pygame == "1":
     clock.tick(30)
     skills_menu_collision = pygame.Rect((1146, 670, 40, 40))
     # collisions quick setup
-    player_hitbox = (player_class_dictionary_global['x_coordinate'] + 17 - cameraObject.x,
-                     player_class_dictionary_global['y_coordinate'] + 11 - cameraObject.y, 29, 52)
+    player_hitbox = (player_object_saver['player'].x + 17 - cameraObject.x,
+                     player_object_saver['player'].y + 11 - cameraObject.y, 29, 52)
     player_collision_rect = pygame.Rect(player_hitbox)
-    if 'assets/pierwszamapa.png' in player_class_dictionary_global["map"]:
+    if 'assets/pierwszamapa.png' in player_object_saver['player'].map:
         collision_first_map()
 
-    print(player_class_dictionary_global["xp"])
+    #print(player_object_saver['player'].xp)
     #experience update
-    while int(player_class_dictionary_global['xp']) >= int(player_class_dictionary_global["next_lvl"]):
-        player_class_dictionary_global["lvl"] = int(player_class_dictionary_global["lvl"]) + 1
-        print(player_class_dictionary_global["lvl"])
-        player_class_dictionary_global['xp'] = int(player_class_dictionary_global['xp']) - int(player_class_dictionary_global['next_lvl'])
-        player_class_dictionary_global['next_lvl'] = round((int(player_class_dictionary_global['next_lvl']) * 1.5) * int(player_class_dictionary_global['ability_to_learn']))
+    while player_object_saver['player'].xp >= player_object_saver['player'].next_lvl:
+        player_object_saver['player'].lvl = player_object_saver['player'].lvl + 1
+        print(player_object_saver['player'].lvl)
+        player_object_saver['player'].xp = player_object_saver['player'].xp - player_object_saver['player'].next_lvl
+        player_object_saver['player'].next_lvl = round(player_object_saver['player'].next_lvl * 1.5) * player_object_saver['player'].ability_to_learn
     # Keys events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -1000,9 +1002,9 @@ while run_pygame == "1":
         for key in first_map_colision_dict:
             if player_collision_rect.colliderect(first_map_colision_dict[key]):
                 collision_count += 1
-                player_class_dictionary_global["x_coordinate"] += vel
+                player_object_saver['player'].x += vel
         if collision_count == 0 and keys[pygame.K_RIGHT] == False:
-            player_class_dictionary_global["x_coordinate"] -= vel
+            player_object_saver['player'].x -= vel
     elif keys[pygame.K_RIGHT]:  # and int(player_class_dictionary_global["x_coordinate"]) + vel < 2950:
         # update player position data
         last_used_move_key = "right"
@@ -1010,9 +1012,9 @@ while run_pygame == "1":
         for key in first_map_colision_dict:
             if player_collision_rect.colliderect(first_map_colision_dict[key]):
                 collision_count += 1
-                player_class_dictionary_global["x_coordinate"] -= vel
+                player_object_saver['player'].x -= vel
         if collision_count == 0 and keys[pygame.K_LEFT] == False:
-            player_class_dictionary_global["x_coordinate"] += vel
+            player_object_saver['player'].x += vel
 
     if keys[pygame.K_UP]:  # and int(player_class_dictionary_global["y_coordinate"]) - vel > 0:
         # update player position data
@@ -1021,9 +1023,9 @@ while run_pygame == "1":
         for key in first_map_colision_dict:
             if player_collision_rect.colliderect(first_map_colision_dict[key]):
                 collision_count += 1
-                player_class_dictionary_global["y_coordinate"] += 10
+                player_object_saver['player'].y += 10
         if collision_count == 0 and keys[pygame.K_DOWN] == False:
-            player_class_dictionary_global["y_coordinate"] -= vel
+            player_object_saver['player'].y -= vel
     elif keys[pygame.K_DOWN]:  # and int(player_class_dictionary_global["y_coordinate"]) + vel < 2935:
         # update player position data
         last_used_move_key = "down"
@@ -1031,16 +1033,16 @@ while run_pygame == "1":
         for key in first_map_colision_dict:
             if player_collision_rect.colliderect(first_map_colision_dict[key]):
                 collision_count += 1
-                player_class_dictionary_global["y_coordinate"] -= 10
+                player_object_saver['player'].y-= 10
         if collision_count == 0 and keys[pygame.K_UP] == False:
-            player_class_dictionary_global["y_coordinate"] += vel
+            player_object_saver['player'].y += vel
 
     # portal logic setup
     if player_collision_rect.colliderect(first_map_colision_dict["portal1"]) or player_collision_rect.colliderect(
             first_map_colision_dict["portal2"]):
-        player_class_dictionary_global["map"] = "assets/bg.jpg"
-        player_class_dictionary_global["x_coordinate"] = 5
-        player_class_dictionary_global["y_coordinate"] = 5
+        player_object_saver['player'].map = "assets/bg.jpg"
+        player_object_saver['player'].x = 5
+        player_object_saver['player'].y = 5
         bg = pygame.image.load("assets/bg.jpg")
 
     # collision fixer
@@ -1049,13 +1051,13 @@ while run_pygame == "1":
         if player_collision_rect.colliderect(first_map_colision_dict[key]):
             collision_count += 1
     if last_used_move_key == "up" and collision_count > 0:
-        player_class_dictionary_global["y_coordinate"] += 10
+        player_object_saver['player'].y += 10
     if last_used_move_key == "down" and collision_count > 0:
-        player_class_dictionary_global["y_coordinate"] -= 10
+        player_object_saver['player'].y -= 10
     if last_used_move_key == "left" and collision_count > 0:
-        player_class_dictionary_global["x_coordinate"] += 10
+        player_object_saver['player'].x += 10
     if last_used_move_key == "right" and collision_count > 0:
-        player_class_dictionary_global["x_coordinate"] -= 10
+        player_object_saver['player'].x -= 10
 
     # X and Y checker
     if keys[pygame.K_SPACE]:
@@ -1063,14 +1065,14 @@ while run_pygame == "1":
         # if time.time() - attack_cd > 3:  # if its been 1 second
         # attack_now = True
         # attack_cd = time.time()
-        print(player_class_dictionary_global["x_coordinate"])
-        print(player_class_dictionary_global["y_coordinate"])
+        print(player_object_saver['player'].x)
+        print(player_object_saver['player'].y)
         print(skills_menu.skill_slots[0].skill.img)
         print(vars(skills_menu.skill_slots[0]))
 
     # refreshing the camera view
     slide_to(cameraObject,
-             (int(player_class_dictionary_global["x_coordinate"]), int(player_class_dictionary_global["y_coordinate"])),
+             (int(player_object_saver['player'].x), player_object_saver['player'].y),
              1 / (clock.get_fps() + 1e-07), 7, (WIDTH / 2, HEIGHT / 2))
 
     # camera lock to prevent the camera from going off the map
