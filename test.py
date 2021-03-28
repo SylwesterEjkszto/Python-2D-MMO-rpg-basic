@@ -1,2 +1,3 @@
-y = 1.2
-print(int(y))
+i =3
+for a in range(i):
+    print("chuj")

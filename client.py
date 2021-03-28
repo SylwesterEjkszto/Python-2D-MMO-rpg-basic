@@ -759,7 +759,7 @@ def redraw_game_window():
     # server communication
     send(
         f"update &{player_object_saver['player'].x} & {player_object_saver['player'].y} & {player_object_saver['player'].map}  & {int(player_object_saver['player'].walk_count)}  & {player_object_saver['player'].last_used_movement_direction}")
-    server_respond_for_redraw = (client.recv(2048))
+    server_respond_for_redraw = (client.recv(8192))
     pickle_from_server_update = pickle.loads(server_respond_for_redraw)
     # activity on server checker
 

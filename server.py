@@ -3,7 +3,7 @@ import threading
 import pickle
 from Player import *
 import time
-HEADER = 2048
+HEADER = 8192
 PORT =5050
 SERVER= socket.gethostbyname(socket.gethostname())
 ADDR =(SERVER, PORT)
@@ -128,8 +128,3 @@ def start():
 
 
 start()
-
-# What i wanna do after disconnect
-for key in username_object_for_active_player:
-    username_object_for_active_player[key]["active"] = "afk"
-    print(username_object_for_active_player[key])
