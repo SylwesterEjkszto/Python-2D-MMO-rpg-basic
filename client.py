@@ -724,7 +724,6 @@ def collision_maker(x_position, y_position, x_fix, y_fix, hitbox_width, htibox_h
 
 # update screen images
 def redraw_game_window():
-    global walkCount
     # background draw
     win.blit(bg, (0 - cameraObject.x, 0 - cameraObject.y))
     def user_interface():
@@ -759,7 +758,7 @@ def redraw_game_window():
 
     # server communication
     send(
-        f"update &{player_object_saver['player'].x} & {player_object_saver['player'].y} & {player_object_saver['player'].map}")
+        f"update &{player_object_saver['player'].x} & {player_object_saver['player'].y} & {player_object_saver['player'].map}  & {int(player_object_saver['player'].walk_count)}  & {player_object_saver['player'].last_used_movement_direction}")
     server_respond_for_redraw = (client.recv(2048))
     pickle_from_server_update = pickle.loads(server_respond_for_redraw)
     # activity on server checker
@@ -778,7 +777,16 @@ def redraw_game_window():
                     pygame.draw.rect(win,(0,255,0),(int(active_players[key]["x"]) + 5- cameraObject.x, int(active_players[key]['y'])  - cameraObject.y,int(active_players[key]['hp']),8),0,5)
                     character_name = font.render(str(active_players[key]["name"]),True,(0,0,0))
                     win.blit(character_name,(int(active_players[key]['x']) + 10 - cameraObject.x,int(active_players[key]['y']) - 18 - cameraObject.y))
-                    char = pygame.image.load(active_players[key]["asset"])
+                    if active_players[key]["last_used_movement_direction"] == 1:
+                        char = pygame.image.load(active_players[key]["walkLeft"][active_players[key]["walk_count"]])
+                    elif active_players[key]["last_used_movement_direction"] == 2:
+                        char = pygame.image.load(active_players[key]["walkRight"][active_players[key]["walk_count"]])
+                    elif active_players[key]["last_used_movement_direction"] == 3:
+                        char = pygame.image.load(active_players[key]["walkDown"][active_players[key]["walk_count"]])
+                    else:
+                        char = pygame.image.load(active_players[key]["walkUp"][active_players[key]["walk_count"]])
+                    #else:
+                        #char = pygame.image.load(active_players[key]["asset"])
                     win.blit(char, (int(active_players[key]['x']) - cameraObject.x,
                                     int(active_players[key]['y']) - cameraObject.y))
         map_object_load("map_elements/drzwi.png", 1420, 1390, 20, 15, 55, 64)
@@ -1034,6 +1042,8 @@ while run_pygame == "1":
                 player_object_saver['player'].x += vel
         if collision_count == 0 and keys[pygame.K_RIGHT] == False:
             player_object_saver['player'].x -= vel
+            player_object_saver['player'].last_used_movement_direction = 1
+            player_object_saver['player'].update(0.5)
     elif keys[pygame.K_RIGHT]:  # and int(player_class_dictionary_global["x_coordinate"]) + vel < 2950:
         # update player position data
         last_used_move_key = "right"
@@ -1044,7 +1054,8 @@ while run_pygame == "1":
                 player_object_saver['player'].x -= vel
         if collision_count == 0 and keys[pygame.K_LEFT] == False:
             player_object_saver['player'].x += vel
-
+            player_object_saver['player'].last_used_movement_direction = 2
+            player_object_saver['player'].update(0.5)
     if keys[pygame.K_UP]:  # and int(player_class_dictionary_global["y_coordinate"]) - vel > 0:
         # update player position data
         last_used_move_key = "up"
@@ -1055,6 +1066,8 @@ while run_pygame == "1":
                 player_object_saver['player'].y += 10
         if collision_count == 0 and keys[pygame.K_DOWN] == False:
             player_object_saver['player'].y -= vel
+            player_object_saver['player'].last_used_movement_direction = 4
+            player_object_saver['player'].update(0.2)
     elif keys[pygame.K_DOWN]:  # and int(player_class_dictionary_global["y_coordinate"]) + vel < 2935:
         # update player position data
         last_used_move_key = "down"
@@ -1065,6 +1078,8 @@ while run_pygame == "1":
                 player_object_saver['player'].y-= 10
         if collision_count == 0 and keys[pygame.K_UP] == False:
             player_object_saver['player'].y += vel
+            player_object_saver['player'].last_used_movement_direction = 3
+            player_object_saver['player'].update(0.2)
 
     # portal logic setup
     if player_collision_rect.colliderect(first_map_colision_dict["portal1"]) or player_collision_rect.colliderect(

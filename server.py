@@ -88,6 +88,10 @@ def handler_client(conn, addr):
                 proper_user_name_dict["clan"].x = int(msg_update_split[1])
                 proper_user_name_dict["clan"].y = int(msg_update_split[2])
                 proper_user_name_dict["clan"].map = str(msg_update_split[3])
+                proper_user_name_dict["clan"].walk_count = int(msg_update_split[4])
+                proper_user_name_dict["clan"].last_used_movement_direction =int(msg_update_split[5])
+
+
                 pickle_to_send = pickle.dumps(username_object_for_active_player)
                 conn.send(pickle_to_send)
                 # test
