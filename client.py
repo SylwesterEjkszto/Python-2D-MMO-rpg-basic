@@ -7,6 +7,106 @@ from Player import *
 import pygame
 from Attack import *
 import time
+import ast
+list_of_enemies = []
+dict_of_enemies = {}
+
+class Enemy():
+    def __init__(self,name, map_img, x, y, x_fix, y_fix, width, height, hp, xp,dmg):
+        self.name = name
+        self.respawn_timer = time.time()
+        self.attack_cd = time.time()
+        self.attack = True
+        self.attack_range_tuple = (0,0,0,0)
+        self.attack_range = 0
+        self.dmg = dmg
+        self.map = map_img
+        self.hp = hp
+        self.max_hp = hp
+        self.xp = xp
+        self.asset = "assets/L1E.png"
+        self.speed = 3
+        self.spawn_x = x
+        self.spawn_y = y
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.x_fix = x_fix
+        self.y_fix = y_fix
+        self.hitbox = (0, 0, 0, 0)
+        self.collision = 0
+        self.collisions_append()
+        self.live = True
+        self.view_rect = (0,0,0,0)
+        self.view = 0
+        self.following = False
+    def hitbox_update(self):
+        self.collision = pygame.Rect(self.hitbox)
+        self.hitbox = (
+            self.x - cameraObject.x + self.x_fix, self.y - cameraObject.y + self.y_fix, self.width, self.height)
+        self.view_rect = (self.x - cameraObject.x - 150 , self.y - cameraObject.y - 155, 350, 350)
+        self.view = pygame.Rect(self.view_rect)
+        self.attack_range_tuple = (self.x - cameraObject.x -40 , self.y - cameraObject.y -40 , 150, 150)
+        self.attack_range = pygame.Rect(self.attack_range_tuple)
+
+    #draw view range and attack range into the screen as green and blue square
+    def view_attack_box(self):
+        pygame.draw.rect(win, (0, 255, 0), self.view_rect, 2)
+        pygame.draw.rect(win, (0,0,255), self.attack_range_tuple, 2)
+
+    # change live parameter and set respawn time to start measuring time
+    def live_update(self):
+        self.live = not self.live
+        self.respawn_timer = time.time()
+
+    #change attack atribute to false and set coldoown timer
+    def attack_update_false(self):
+        self.attack = False
+        self.attack_cd = time.time()
+
+    # check respawn timer, while true respawn enemy with full hp in spawn position
+    def respawn_check(self):
+        if time.time() - self.respawn_timer >5 and self.live == False:
+            self.live = True
+            self.x = self.spawn_x
+            self.y = self.spawn_y
+            self.hp = self.max_hp
+            self.following = False
+
+    # do this when object get hit, update live,hp and player xp
+    def hit(self,attack):
+        if self.live == True:
+            print('ojojojoj')
+            self.hp -= attack.dmg
+            print(self.hp)
+            if self.hp < 1:
+                player_object_saver['player'].xp = player_object_saver['player'].xp + self.xp
+                self.live_update()
+                self.following = False
+    # add enemies to list
+    def collisions_append(self):
+        list_of_enemies.append(self)
+    # following the player method and also attack method
+    def move(self,):
+        if player_collision_rect.colliderect(self.view):
+            self.following = True
+        if self.attack == True and player_collision_rect.colliderect(self.attack_range) and self.live:
+            player_object_saver["player"].hp -= self.dmg
+            self.attack_update_false()
+        if self.attack == False:
+            if time.time() - self.attack_cd > 1.5:
+                self.attack = True
+        if self.live and self.following == True:
+            if self.x-50 > player_object_saver["player"].x:
+                self.x -= self.speed
+            elif self.x + 50 < player_object_saver["player"].x:
+                self.x += self.speed
+            if self.y +50 < player_object_saver["player"].y:
+                self.y += self.speed
+            elif self.y - 50 > player_object_saver["player"].y:
+                self.y -= self.speed
+
 
 # permament network variables
 HEADER = 2048
@@ -28,6 +128,9 @@ graphics_elements = []
 character_customization = []
 # dict for sending pickles with class object parameters
 player_class_dictionary_global = {}
+#Enemies declaration
+goblin = Enemy("goblin",'assets/testmap.png', 1235, 580, 17, 2, 31, 57, 1, 500,5)
+
 # main window setup
 WIDTH = 1280
 HEIGHT = 720
@@ -600,11 +703,25 @@ def login_button_command(usernameTextBox=None, passwordTextBox=None):
         server_first_pickle = (client.recv(2048))
         server_first_pickle_recived = pickle.loads(server_first_pickle)
         player_object_saver["player"] = server_first_pickle_recived
-        fist_pickle_in_dict = vars(server_first_pickle_recived)
+        print(server_first_pickle)
+        # active players recived from server and transfomred into dictionary
+        server_second_pickle = (client.recv(2048))
+        server_second_pickle_recived = pickle.loads(server_second_pickle)
+        print(server_second_pickle_recived)
+
+        # Enemies update
+        for i in range(len(list_of_enemies)):
+            name_of_enemy = list_of_enemies[i].name
+            print(list_of_enemies[i].x)
+            list_of_enemies[i].x = server_second_pickle_recived[name_of_enemy]["x"]
+            list_of_enemies[i].y = server_second_pickle_recived[name_of_enemy]["y"]
+        ###
+        #server_first_pickle_recived = pickle.loads(server_first_pickle)
+        #player_object_saver["player"] = server_first_pickle_recived
+        #fist_pickle_in_dict = vars(server_first_pickle_recived)
         root.quit()
         root.destroy()
-        for key in fist_pickle_in_dict:
-            player_class_dictionary_global[key] = fist_pickle_in_dict[key]
+
 
     # account creation function start
     if server_respond == "your account is ready":
@@ -708,10 +825,16 @@ def map_object_load(string_path_to_image, x_position, y_position, x_fix, y_fix, 
 # draw enemies
 def map_enemy_load(object):
     texture_name = pygame.image.load(object.asset)
+    if object.live == False:
+        texture_name = pygame.transform.rotate(texture_name, 90)
     win.blit(texture_name, (object.x - cameraObject.x, object.y - cameraObject.y))
     texture_hitbox = (object.x + object.x_fix - cameraObject.x, object.y + object.y_fix - cameraObject.y, object.width,
                       object.height)
     pygame.draw.rect(win, (255, 0, 0), texture_hitbox, 2)
+    #if object.live == False:
+        #rotated_image = pygame.transform.rotate(texture_name, 90)
+        #new_rect = rotated_image.get_rect(center=texture_name.get_rect().center)
+        #win.blit(rotated_image,(object.x - cameraObject.x, object.y - cameraObject.y ))
 
 
 # make object for collision
@@ -721,6 +844,12 @@ def collision_maker(x_position, y_position, x_fix, y_fix, hitbox_width, htibox_h
     collision_box = pygame.Rect(texture_hitbox)
     dict_name[dict_key_string] = collision_box
 
+def blitRotateCenter(surf, image, topleft,):
+
+    rotated_image = pygame.transform.rotate(image, 90)
+    new_rect = rotated_image.get_rect(center = image.get_rect(topleft = topleft).center)
+
+    surf.blit(rotated_image, new_rect.topleft)
 
 # update screen images
 def redraw_game_window():
@@ -732,7 +861,7 @@ def redraw_game_window():
         win.blit(skills_icon, (1146, 670))
         #skills icon border
         pygame.draw.rect(win, (255, 0, 0), (1146, 670, 40, 40), 2)
-        hp_bar_text = font.render('HP: ' + str(player_object_saver["player"].hp) + "/" + str(player_object_saver['player'].max_hp),True,(0,0,0))
+        hp_bar_text = font.render('HP: ' + str(player_object_saver["player"].hp)  + "/" + str(player_object_saver['player'].max_hp),True,(0,0,0))
         pygame.draw.rect(win, (255, 0, 0), (0,0,200,25))
         acctual_hp_math = 200 / int(player_object_saver['player'].max_hp)
         pygame.draw.rect(win, (0, 255, 0), (0, 0,( int(player_object_saver['player'].hp * acctual_hp_math)), 25))
@@ -757,22 +886,37 @@ def redraw_game_window():
 
 
     # server communication
+    #append directory of enemies with thins i need to send to all users
+    for i in range(len(list_of_enemies)):
+        dict_of_enemies[list_of_enemies[i].name] = {"x":list_of_enemies[i].x,"y":list_of_enemies[i].y,"live":list_of_enemies[i].live}
+    #print(dict_of_enemies)
     send(
-        f"update &{player_object_saver['player'].x} & {player_object_saver['player'].y} & {player_object_saver['player'].map}  & {int(player_object_saver['player'].walk_count)}  & {player_object_saver['player'].last_used_movement_direction}")
+        f"update &{player_object_saver['player'].x} & {player_object_saver['player'].y} & {player_object_saver['player'].map}  & {int(player_object_saver['player'].walk_count)}  & {player_object_saver['player'].last_used_movement_direction} & {player_object_saver['player'].lvl} & {player_object_saver['player'].xp} & {player_object_saver['player'].next_lvl} & {dict_of_enemies}")
     server_respond_for_redraw = (client.recv(8192))
-    pickle_from_server_update = pickle.loads(server_respond_for_redraw)
-    # activity on server checker
-
+    # split the mesege for usefull directiores
+    server_respond_for_redraw_split = server_respond_for_redraw.decode(FORMAT).split('&')
+    # active players recived from server and transfomred into dictionary
+    res = ast.literal_eval(server_respond_for_redraw_split[0])
+    # enemies recived from server striped for delete whitespaces and transformed into dictionary
+    res_enemy = ast.literal_eval(server_respond_for_redraw_split[2].strip())
     # players update
-    for key in pickle_from_server_update:
-        active_players[key] = (pickle_from_server_update[key])
+    for key in res:
+        active_players[key] = res[key]
+    for i in range(len(list_of_enemies)):
+        name_of_enemy = list_of_enemies[i].name
+        print(list_of_enemies[i].x)
+        list_of_enemies[i].x = res_enemy[name_of_enemy]["x"]
+        print(list_of_enemies[i].x)
+
+
+
 
     # Drawing function
     def first_map_draw_function():
         map_object_load('assets/temple.png', 230, 0, 0, 0, 600, 360)
         for key in active_players:
             if active_players[key]['active'] == "active":
-                if 'assets/pierwszamapa.png' in active_players[key]["map"]:
+                if 1 == active_players[key]["map"]:
                     pygame.draw.rect(win,(255,0,0),(int(active_players[key]["x"]) + 5 - cameraObject.x, int(active_players[key]['y']) - cameraObject.y,int(active_players[key]['max_hp']),8),0,5)
                     pygame.draw.rect(win,(0,255,0),(int(active_players[key]["x"]) + 5- cameraObject.x, int(active_players[key]['y'])  - cameraObject.y,int(active_players[key]['hp']),8),0,5)
                     character_name = font.render(str(active_players[key]["name"]),True,(0,0,0))
@@ -798,9 +942,10 @@ def redraw_game_window():
         map_enemy_load(goblin)
         # Howa.collision_redbox_draw()
         Jiba.collision_redbox_draw()
+        goblin.view_attack_box()
         user_interface()
 
-    if "assets/pierwszamapa.png" in player_object_saver['player'].map:
+    if 1== player_object_saver['player'].map:
         first_map_draw_function()
     pygame.display.update()
 
@@ -881,39 +1026,8 @@ class SkillSlot:
 
 
 # Enemy Class
-list_of_enemies = []
 
 
-class Enemy():
-    def __init__(self, map_img, x, y, x_fix, y_fix, width, height, hp, xp):
-        self.map = map_img
-        self.hp = hp
-        self.xp = xp
-        self.asset = "assets/L1E.png"
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.x_fix = x_fix
-        self.y_fix = y_fix
-        self.hitbox = (0, 0, 0, 0)
-        self.collision = 0
-        self.collisions_append()
-
-    def hitbox_update(self):
-        self.collision = pygame.Rect(self.hitbox)
-        self.hitbox = (
-            self.x - cameraObject.x + self.x_fix, self.y - cameraObject.y + self.y_fix, self.width, self.height)
-
-    def hit(self,attack):  # This will display when the enemy is hit
-        print('ojojojoj')
-        self.hp -= attack.dmg
-        print(self.hp)
-    def collisions_append(self):
-        list_of_enemies.append(self)
-
-
-goblin = Enemy('assets/testmap.png', 1235, 580, 17, 2, 31, 57, 1, 500)
 
 
 # Attacks
@@ -941,8 +1055,6 @@ class Attack:
         for i in range(len(list_of_enemies)):
             if attack_collision.colliderect(list_of_enemies[i].collision):
                 list_of_enemies[i].hit(self)
-                if list_of_enemies[i]. hp < 1:
-                    player_object_saver['player'].xp = player_object_saver['player'].xp + list_of_enemies[i].xp
 
     # Draw visual for checking
     def collision_redbox_draw(name):
@@ -1000,9 +1112,12 @@ while run_pygame == "1":
     player_hitbox = (player_object_saver['player'].x + 17 - cameraObject.x,
                      player_object_saver['player'].y + 11 - cameraObject.y, 29, 52)
     player_collision_rect = pygame.Rect(player_hitbox)
-    if 'assets/pierwszamapa.png' in player_object_saver['player'].map:
+    if 1 == player_object_saver['player'].map:
         collision_first_map()
-
+    # Enemies Setup
+    for enemies_object in range(len(list_of_enemies)):
+        list_of_enemies[enemies_object].move()
+        list_of_enemies[enemies_object].respawn_check()
     #print(player_object_saver['player'].xp)
     #experience update
     while player_object_saver['player'].xp >= player_object_saver['player'].next_lvl:
@@ -1014,6 +1129,9 @@ while run_pygame == "1":
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_v:
+                skills_menu.toggle_skill_menu()
         if event.type == pygame.MOUSEBUTTONDOWN:
             if pygame.mouse.get_pressed(num_buttons=3)[0]:
                 pos = pygame.mouse.get_pos()
@@ -1032,7 +1150,7 @@ while run_pygame == "1":
 
     # movement right left up down events
 
-    if keys[pygame.K_LEFT]:  # and int(player_class_dictionary_global["x_coordinate"]) -vel > 0:
+    if keys[pygame.K_LEFT] or keys[pygame.K_a]:  # and int(player_class_dictionary_global["x_coordinate"]) -vel > 0:
         # update player position data
         last_used_move_key = "left"
         collision_count = 0
@@ -1044,7 +1162,7 @@ while run_pygame == "1":
             player_object_saver['player'].x -= vel
             player_object_saver['player'].last_used_movement_direction = 1
             player_object_saver['player'].update(0.5)
-    elif keys[pygame.K_RIGHT]:  # and int(player_class_dictionary_global["x_coordinate"]) + vel < 2950:
+    elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:  # and int(player_class_dictionary_global["x_coordinate"]) + vel < 2950:
         # update player position data
         last_used_move_key = "right"
         collision_count = 0
@@ -1056,7 +1174,7 @@ while run_pygame == "1":
             player_object_saver['player'].x += vel
             player_object_saver['player'].last_used_movement_direction = 2
             player_object_saver['player'].update(0.5)
-    if keys[pygame.K_UP]:  # and int(player_class_dictionary_global["y_coordinate"]) - vel > 0:
+    if keys[pygame.K_UP] or keys[pygame.K_w]:  # and int(player_class_dictionary_global["y_coordinate"]) - vel > 0:
         # update player position data
         last_used_move_key = "up"
         collision_count = 0
@@ -1068,7 +1186,7 @@ while run_pygame == "1":
             player_object_saver['player'].y -= vel
             player_object_saver['player'].last_used_movement_direction = 4
             player_object_saver['player'].update(0.2)
-    elif keys[pygame.K_DOWN]:  # and int(player_class_dictionary_global["y_coordinate"]) + vel < 2935:
+    elif keys[pygame.K_DOWN] or keys[pygame.K_s]:  # and int(player_class_dictionary_global["y_coordinate"]) + vel < 2935:
         # update player position data
         last_used_move_key = "down"
         collision_count = 0
@@ -1084,7 +1202,7 @@ while run_pygame == "1":
     # portal logic setup
     if player_collision_rect.colliderect(first_map_colision_dict["portal1"]) or player_collision_rect.colliderect(
             first_map_colision_dict["portal2"]):
-        player_object_saver['player'].map = "assets/bg.jpg"
+        player_object_saver['player'].map = 2
         player_object_saver['player'].x = 5
         player_object_saver['player'].y = 5
         bg = pygame.image.load("assets/bg.jpg")
@@ -1122,7 +1240,6 @@ while run_pygame == "1":
     # camera lock to prevent the camera from going off the map
     cameraObject.x = clamp(cameraObject.x, 0, 1720)
     cameraObject.y = clamp(cameraObject.y, 0, 780)
-
     # window graphic update
     redraw_game_window()
 

@@ -13,7 +13,7 @@ class Player():
         self.lvl = 1
         self.ability_to_learn = 1
         self.clan = ""
-        self.map = 'assets/pierwszamapa.png'
+        self.map = 1
         self.x = 465
         self.y = 385
         self.asset = 'assets/standing.png'
@@ -41,5 +41,7 @@ class Player():
             self.walk_count = 0
         if self.last_used_movement_direction == 4 and int(self.walk_count) >= len(self.walkUp):
             self.walk_count = 0
+
+
 
 
