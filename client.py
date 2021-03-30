@@ -89,8 +89,8 @@ class Enemy():
         list_of_enemies.append(self)
     # following the player method and also attack method
     def move(self,):
-        if player_collision_rect.colliderect(self.view):
-            self.following = True
+        #if player_collision_rect.colliderect(self.view):
+        self.following = True
         if self.attack == True and player_collision_rect.colliderect(self.attack_range) and self.live:
             player_object_saver["player"].hp -= self.dmg
             self.attack_update_false()
@@ -98,14 +98,15 @@ class Enemy():
             if time.time() - self.attack_cd > 1.5:
                 self.attack = True
         if self.live and self.following == True:
-            if self.x-50 > player_object_saver["player"].x:
-                self.x -= self.speed
-            elif self.x + 50 < player_object_saver["player"].x:
-                self.x += self.speed
-            if self.y +50 < player_object_saver["player"].y:
-                self.y += self.speed
-            elif self.y - 50 > player_object_saver["player"].y:
-                self.y -= self.speed
+            self.x -= 3
+            #if self.x-50 > player_object_saver["player"].x:
+                #self.x -= self.speed
+            #elif self.x + 50 < player_object_saver["player"].x:
+                #self.x += self.speed
+            #if self.y +50 < player_object_saver["player"].y:
+                #self.y += self.speed
+            #elif self.y - 50 > player_object_saver["player"].y:
+                #self.y -= self.speed
 
 
 # permament network variables
@@ -892,6 +893,7 @@ def redraw_game_window():
     #print(dict_of_enemies)
     send(
         f"update &{player_object_saver['player'].x} & {player_object_saver['player'].y} & {player_object_saver['player'].map}  & {int(player_object_saver['player'].walk_count)}  & {player_object_saver['player'].last_used_movement_direction} & {player_object_saver['player'].lvl} & {player_object_saver['player'].xp} & {player_object_saver['player'].next_lvl} & {dict_of_enemies}")
+
     server_respond_for_redraw = (client.recv(8192))
     # split the mesege for usefull directiores
     server_respond_for_redraw_split = server_respond_for_redraw.decode(FORMAT).split('&')
@@ -899,14 +901,13 @@ def redraw_game_window():
     res = ast.literal_eval(server_respond_for_redraw_split[0])
     # enemies recived from server striped for delete whitespaces and transformed into dictionary
     res_enemy = ast.literal_eval(server_respond_for_redraw_split[2].strip())
+    print(res_enemy)
     # players update
     for key in res:
         active_players[key] = res[key]
     for i in range(len(list_of_enemies)):
         name_of_enemy = list_of_enemies[i].name
-        print(list_of_enemies[i].x)
         list_of_enemies[i].x = res_enemy[name_of_enemy]["x"]
-        print(list_of_enemies[i].x)
 
 
 

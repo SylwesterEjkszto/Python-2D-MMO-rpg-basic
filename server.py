@@ -109,7 +109,17 @@ def handler_client(conn, addr):
                 proper_user_name_dict["clan"].last_used_movement_direction =int(msg_update_split[5])
                 enemies_respond = ast.literal_eval(msg_update_split[9].strip())
                 for key in enemies_respond:
-                    enemies_dictionary_update[key] = enemies_respond[key]
+                    #print("first" + str(enemies_dictionary_update[key]["x"] - enemies_respond[key]["x"]))
+                    #print("second" + str(enemies_dictionary_update[key]["y"] - enemies_respond[key]["y"]))
+                    if enemies_dictionary_update[key]["x"] - enemies_respond[key]["x"] == 3 or enemies_dictionary_update[key]["x"] - enemies_respond[key]["x"] == -3 or enemies_dictionary_update[key]["x"] - enemies_respond[key]["x"] == 0:
+                        if enemies_dictionary_update[key]["y"] - enemies_respond[key]["y"] == 3 or enemies_dictionary_update[key]["y"] - enemies_respond[key]["y"] == -3 or enemies_dictionary_update[key]["y"] - enemies_respond[key]["y"] ==0:
+                            enemies_dictionary_update[key]["x"] = enemies_respond[key]["x"]
+                            enemies_dictionary_update[key]["y"] = enemies_respond[key]["y"]
+                    #enemies_dictionary_update[key]["x"] = enemies_respond[key]["x"]
+                    #if enemies_dictionary_update[key]["y"] - enemies_respond[key]["y"] == 3 or enemies_dictionary_update[key]["y"] - enemies_respond[key]["y"] == -3:
+                        #enemies_dictionary_update[key]["y"] = enemies_respond[key]["y"]
+                    #print(enemies_dictionary_update)
+                    #print(f"smth {enemies_respond[key]['x']}")
                 #print(msg_update_split[9])
                 something = {"smth":"smth"}
                 conn.send(f"{username_object_for_active_player} & {something} & {enemies_dictionary_update}".encode(FORMAT))
