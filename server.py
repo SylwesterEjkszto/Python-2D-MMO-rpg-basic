@@ -108,6 +108,8 @@ def handler_client(conn, addr):
                 proper_user_name_dict["clan"].next_lvl = int(msg_update_split[8])
                 proper_user_name_dict["clan"].last_used_movement_direction =int(msg_update_split[5])
                 enemies_respond = ast.literal_eval(msg_update_split[9].strip())
+                proper_user_name_dict["clan"].hitbox =  eval(msg_update_split[10])
+                #shit = eval(msg_update_split[10])
                 for key in enemies_respond:
                     #print("first" + str(enemies_dictionary_update[key]["x"] - enemies_respond[key]["x"]))
                     #print("second" + str(enemies_dictionary_update[key]["y"] - enemies_respond[key]["y"]))

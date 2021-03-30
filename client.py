@@ -41,6 +41,8 @@ class Enemy():
         self.view_rect = (0,0,0,0)
         self.view = 0
         self.following = False
+        self.player_to_follow = 0
+
     def hitbox_update(self):
         self.collision = pygame.Rect(self.hitbox)
         self.hitbox = (
@@ -88,25 +90,34 @@ class Enemy():
     def collisions_append(self):
         list_of_enemies.append(self)
     # following the player method and also attack method
-    def move(self,):
-        #if player_collision_rect.colliderect(self.view):
-        self.following = True
-        if self.attack == True and player_collision_rect.colliderect(self.attack_range) and self.live:
-            player_object_saver["player"].hp -= self.dmg
-            self.attack_update_false()
-        if self.attack == False:
-            if time.time() - self.attack_cd > 1.5:
-                self.attack = True
+    def move(self):
+        if self.player_to_follow ==0:
+            for key in active_players:
+                if active_players[key]["collision_rect"].colliderect(self.view):
+                    self.following = True
+                    self.player_to_follow = active_players[key]["name"]
+                    break
+        print(self.player_to_follow)
+        if self.player_to_follow != 0:
+            print(active_players[self.player_to_follow]["x"])
+            #if self.attack == True and if active_players[key]["collision_rect"]_rect.colliderect(self.attack_range) and self.live:
+                #player_object_saver["player"].hp -= self.dmg
+        #    self.attack_update_false()
+        #if self.attack == False:
+         #   if time.time() - self.attack_cd > 1.5:
+         #       self.attack = True
         if self.live and self.following == True:
-            self.x -= 3
-            #if self.x-50 > player_object_saver["player"].x:
-                #self.x -= self.speed
-            #elif self.x + 50 < player_object_saver["player"].x:
-                #self.x += self.speed
-            #if self.y +50 < player_object_saver["player"].y:
-                #self.y += self.speed
-            #elif self.y - 50 > player_object_saver["player"].y:
-                #self.y -= self.speed
+            if self.x-50 > active_players[self.player_to_follow]["x"]:
+                self.x -= self.speed
+            elif self.x + 50 < active_players[self.player_to_follow]["x"]:
+                self.x += self.speed
+            if self.y +50 < active_players[self.player_to_follow]["y"]:
+                self.y += self.speed
+            elif self.y - 50 >  active_players[self.player_to_follow]["y"]:
+                self.y -= self.speed
+            #self.following = False
+
+
 
 
 # permament network variables
@@ -704,16 +715,16 @@ def login_button_command(usernameTextBox=None, passwordTextBox=None):
         server_first_pickle = (client.recv(2048))
         server_first_pickle_recived = pickle.loads(server_first_pickle)
         player_object_saver["player"] = server_first_pickle_recived
-        print(server_first_pickle)
+        #print(server_first_pickle)
         # active players recived from server and transfomred into dictionary
         server_second_pickle = (client.recv(2048))
         server_second_pickle_recived = pickle.loads(server_second_pickle)
-        print(server_second_pickle_recived)
+        #print(server_second_pickle_recived)
 
         # Enemies update
         for i in range(len(list_of_enemies)):
             name_of_enemy = list_of_enemies[i].name
-            print(list_of_enemies[i].x)
+            #print(list_of_enemies[i].x)
             list_of_enemies[i].x = server_second_pickle_recived[name_of_enemy]["x"]
             list_of_enemies[i].y = server_second_pickle_recived[name_of_enemy]["y"]
         ###
@@ -892,7 +903,7 @@ def redraw_game_window():
         dict_of_enemies[list_of_enemies[i].name] = {"x":list_of_enemies[i].x,"y":list_of_enemies[i].y,"live":list_of_enemies[i].live}
     #print(dict_of_enemies)
     send(
-        f"update &{player_object_saver['player'].x} & {player_object_saver['player'].y} & {player_object_saver['player'].map}  & {int(player_object_saver['player'].walk_count)}  & {player_object_saver['player'].last_used_movement_direction} & {player_object_saver['player'].lvl} & {player_object_saver['player'].xp} & {player_object_saver['player'].next_lvl} & {dict_of_enemies}")
+        f"update &{player_object_saver['player'].x} & {player_object_saver['player'].y} & {player_object_saver['player'].map}  & {int(player_object_saver['player'].walk_count)}  & {player_object_saver['player'].last_used_movement_direction} & {player_object_saver['player'].lvl} & {player_object_saver['player'].xp} & {player_object_saver['player'].next_lvl} & {dict_of_enemies}  & {player_object_saver['player'].hitbox}")
 
     server_respond_for_redraw = (client.recv(8192))
     # split the mesege for usefull directiores
@@ -901,14 +912,14 @@ def redraw_game_window():
     res = ast.literal_eval(server_respond_for_redraw_split[0])
     # enemies recived from server striped for delete whitespaces and transformed into dictionary
     res_enemy = ast.literal_eval(server_respond_for_redraw_split[2].strip())
-    print(res_enemy)
+    #print(res_enemy)
     # players update
     for key in res:
         active_players[key] = res[key]
+        active_players[key]["collision_rect"] = pygame.Rect(active_players[key]["hitbox"])
     for i in range(len(list_of_enemies)):
         name_of_enemy = list_of_enemies[i].name
         list_of_enemies[i].x = res_enemy[name_of_enemy]["x"]
-
 
 
 
@@ -1110,9 +1121,10 @@ while run_pygame == "1":
     clock.tick(30)
     skills_menu_collision = pygame.Rect((1146, 670, 40, 40))
     # collisions quick setup
-    player_hitbox = (player_object_saver['player'].x + 17 - cameraObject.x,
-                     player_object_saver['player'].y + 11 - cameraObject.y, 29, 52)
-    player_collision_rect = pygame.Rect(player_hitbox)
+    #player_hitbox = (player_object_saver['player'].x + 17 - cameraObject.x,
+                     #player_object_saver['player'].y + 11 - cameraObject.y, 29, 52)
+    #player_collision_rect = pygame.Rect(player_hitbox)
+    player_object_saver['player'].update_hitbox(cameraObject.x,cameraObject.y)
     if 1 == player_object_saver['player'].map:
         collision_first_map()
     # Enemies Setup
@@ -1123,7 +1135,7 @@ while run_pygame == "1":
     #experience update
     while player_object_saver['player'].xp >= player_object_saver['player'].next_lvl:
         player_object_saver['player'].lvl = player_object_saver['player'].lvl + 1
-        print(player_object_saver['player'].lvl)
+        #print(player_object_saver['player'].lvl)
         player_object_saver['player'].xp = player_object_saver['player'].xp - player_object_saver['player'].next_lvl
         player_object_saver['player'].next_lvl = round(player_object_saver['player'].next_lvl * 1.5) * player_object_saver['player'].ability_to_learn
     # Keys events
@@ -1140,6 +1152,7 @@ while run_pygame == "1":
                 y_mouse_pos = pos[1]
                 mouse_collision = pygame.Rect(x_mouse_pos, y_mouse_pos, 1, 1)
                 print(pos)
+                print(active_players)
                 if mouse_collision.colliderect(skills_menu_collision):
                     skills_menu.toggle_skill_menu()
                 for i in range(len(skills_menu.slots_collisions)):
@@ -1156,7 +1169,8 @@ while run_pygame == "1":
         last_used_move_key = "left"
         collision_count = 0
         for key in first_map_colision_dict:
-            if player_collision_rect.colliderect(first_map_colision_dict[key]):
+            #if player_collision_rect.colliderect(first_map_colision_dict[key]):
+            if player_object_saver['player'].collision_rect.colliderect(first_map_colision_dict[key]):
                 collision_count += 1
                 player_object_saver['player'].x += vel
         if collision_count == 0 and keys[pygame.K_RIGHT] == False:
@@ -1168,7 +1182,8 @@ while run_pygame == "1":
         last_used_move_key = "right"
         collision_count = 0
         for key in first_map_colision_dict:
-            if player_collision_rect.colliderect(first_map_colision_dict[key]):
+            #if player_collision_rect.colliderect(first_map_colision_dict[key]):
+            if player_object_saver["player"].collision_rect.colliderect(first_map_colision_dict[key]):
                 collision_count += 1
                 player_object_saver['player'].x -= vel
         if collision_count == 0 and keys[pygame.K_LEFT] == False:
@@ -1180,7 +1195,8 @@ while run_pygame == "1":
         last_used_move_key = "up"
         collision_count = 0
         for key in first_map_colision_dict:
-            if player_collision_rect.colliderect(first_map_colision_dict[key]):
+            #if player_collision_rect.colliderect(first_map_colision_dict[key]):
+            if player_object_saver["player"].collision_rect.colliderect(first_map_colision_dict[key]):
                 collision_count += 1
                 player_object_saver['player'].y += 10
         if collision_count == 0 and keys[pygame.K_DOWN] == False:
@@ -1192,7 +1208,8 @@ while run_pygame == "1":
         last_used_move_key = "down"
         collision_count = 0
         for key in first_map_colision_dict:
-            if player_collision_rect.colliderect(first_map_colision_dict[key]):
+            #if player_collision_rect.colliderect(first_map_colision_dict[key]):
+            if player_object_saver['player'].collision_rect.colliderect(first_map_colision_dict[key]):
                 collision_count += 1
                 player_object_saver['player'].y-= 10
         if collision_count == 0 and keys[pygame.K_UP] == False:
@@ -1201,8 +1218,9 @@ while run_pygame == "1":
             player_object_saver['player'].update(0.2)
 
     # portal logic setup
-    if player_collision_rect.colliderect(first_map_colision_dict["portal1"]) or player_collision_rect.colliderect(
-            first_map_colision_dict["portal2"]):
+    #if player_collision_rect.colliderect(first_map_colision_dict["portal1"]) or player_collision_rect.colliderect(
+            #first_map_colision_dict["portal2"]):
+    if player_object_saver['player'].collision_rect.colliderect(first_map_colision_dict['portal1']) or player_object_saver['player'].collision_rect.colliderect(first_map_colision_dict['portal2']):
         player_object_saver['player'].map = 2
         player_object_saver['player'].x = 5
         player_object_saver['player'].y = 5
@@ -1211,7 +1229,8 @@ while run_pygame == "1":
     # collision fixer
     collision_count = 0
     for key in first_map_colision_dict:
-        if player_collision_rect.colliderect(first_map_colision_dict[key]):
+        #if player_collision_rect.colliderect(first_map_colision_dict[key]):
+        if player_object_saver['player'].collision_rect.colliderect(first_map_colision_dict[key]):
             collision_count += 1
     if last_used_move_key == "up" and collision_count > 0:
         player_object_saver['player'].y += 10

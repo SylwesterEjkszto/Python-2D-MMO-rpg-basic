@@ -30,7 +30,7 @@ class Player():
         self.walkDown = [("assets/standing.png"),("assets/D2.png"),("assets/D3.png")]
         self.walkUp = [("assets/up1.png"), ("assets/up2.png"),("assets/up3.png")]
         self.walk_count = 0
-
+        self.collision_rect = 0
     def update(self, speed):
         self.walk_count += speed
         if self.last_used_movement_direction == 1 and int(self.walk_count) >= len(self.walkLeft):
@@ -41,7 +41,6 @@ class Player():
             self.walk_count = 0
         if self.last_used_movement_direction == 4 and int(self.walk_count) >= len(self.walkUp):
             self.walk_count = 0
-
-
-
-
+    def update_hitbox(self,camera_x,camera_y):
+        self.hitbox = (self.x + 17 - camera_x, self.y + 11 - camera_y, 29, 52)
+        self.collision_rect = pygame.Rect(self.hitbox)
