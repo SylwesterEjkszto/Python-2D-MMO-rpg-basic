@@ -86,6 +86,7 @@ class Enemy():
                 player_object_saver['player'].xp = player_object_saver['player'].xp + self.xp
                 self.live_update()
                 self.following = False
+                self.player_to_follow = 0
     # add enemies to list
     def collisions_append(self):
         list_of_enemies.append(self)
@@ -97,25 +98,23 @@ class Enemy():
                     self.following = True
                     self.player_to_follow = active_players[key]["name"]
                     break
-        print(self.player_to_follow)
+        #print(self.player_to_follow)
+        if self.attack == True and player_object_saver["player"].collision_rect.colliderect(self.attack_range) and self.live:
+            player_object_saver["player"].hp -= self.dmg
+            self.attack_update_false()
+        if self.attack == False:
+            if time.time() - self.attack_cd > 1.5:
+                self.attack = True
         if self.player_to_follow != 0:
-            print(active_players[self.player_to_follow]["x"])
-            #if self.attack == True and if active_players[key]["collision_rect"]_rect.colliderect(self.attack_range) and self.live:
-                #player_object_saver["player"].hp -= self.dmg
-        #    self.attack_update_false()
-        #if self.attack == False:
-         #   if time.time() - self.attack_cd > 1.5:
-         #       self.attack = True
-        if self.live and self.following == True:
-            if self.x-50 > active_players[self.player_to_follow]["x"]:
-                self.x -= self.speed
-            elif self.x + 50 < active_players[self.player_to_follow]["x"]:
-                self.x += self.speed
-            if self.y +50 < active_players[self.player_to_follow]["y"]:
-                self.y += self.speed
-            elif self.y - 50 >  active_players[self.player_to_follow]["y"]:
-                self.y -= self.speed
-            #self.following = False
+            if self.live and self.following == True:
+                if self.x-50 > active_players[self.player_to_follow]["x"]:
+                    self.x -= self.speed
+                elif self.x + 50 < active_players[self.player_to_follow]["x"]:
+                    self.x += self.speed
+                if self.y +50 < active_players[self.player_to_follow]["y"]:
+                    self.y += self.speed
+                elif self.y - 50 >  active_players[self.player_to_follow]["y"]:
+                    self.y -= self.speed
 
 
 
@@ -894,13 +893,31 @@ def redraw_game_window():
         pygame.draw.rect(win, (218,165,32),
                          (0, 75, (int(player_object_saver['player'].xp * acctual_xp_math)), 25))
         win.blit(xp_text, (70, 80))
-
+        skill_quick_use.draw(win)
+        first = quick_use_font.render(("1"), True,(0,0,0))
+        win.blit(first,(460,695))
+        first = quick_use_font.render(("2"), True, (0, 0, 0))
+        win.blit(first, (505, 695))
+        first = quick_use_font.render(("3"), True, (0, 0, 0))
+        win.blit(first, (550, 695))
+        first = quick_use_font.render(("4"), True, (0, 0, 0))
+        win.blit(first, (595, 695))
+        first = quick_use_font.render(("5"), True, (0, 0, 0))
+        win.blit(first, (635, 695))
+        first = quick_use_font.render(("6"), True, (0, 0, 0))
+        win.blit(first, (675, 695))
+        first = quick_use_font.render(("7"), True, (0, 0, 0))
+        win.blit(first, (720, 695))
+        first = quick_use_font.render(("8"), True, (0, 0, 0))
+        win.blit(first, (760, 695))
+        first = quick_use_font.render(("9"), True, (0, 0, 0))
+        win.blit(first, (800, 695))
 
 
     # server communication
     #append directory of enemies with thins i need to send to all users
     for i in range(len(list_of_enemies)):
-        dict_of_enemies[list_of_enemies[i].name] = {"x":list_of_enemies[i].x,"y":list_of_enemies[i].y,"live":list_of_enemies[i].live}
+        dict_of_enemies[list_of_enemies[i].name] = {"x":list_of_enemies[i].x,"y":list_of_enemies[i].y,"live":list_of_enemies[i].live,"player_to_follow":list_of_enemies[i].player_to_follow}
     #print(dict_of_enemies)
     send(
         f"update &{player_object_saver['player'].x} & {player_object_saver['player'].y} & {player_object_saver['player'].map}  & {int(player_object_saver['player'].walk_count)}  & {player_object_saver['player'].last_used_movement_direction} & {player_object_saver['player'].lvl} & {player_object_saver['player'].xp} & {player_object_saver['player'].next_lvl} & {dict_of_enemies}  & {player_object_saver['player'].hitbox}")
@@ -920,6 +937,12 @@ def redraw_game_window():
     for i in range(len(list_of_enemies)):
         name_of_enemy = list_of_enemies[i].name
         list_of_enemies[i].x = res_enemy[name_of_enemy]["x"]
+        list_of_enemies[i].y = res_enemy[name_of_enemy]["y"]
+        list_of_enemies[i].player_to_follow = res_enemy[name_of_enemy]["player_to_follow"]
+        list_of_enemies[i].live = res_enemy[name_of_enemy]["live"]
+
+
+
 
 
 
@@ -1015,6 +1038,38 @@ class SkillsMenu:
                 if slots.skill is None:
                     slots.skill = item
                     break
+class SkillsDownQuickUse:
+    def __init__(self, rows, cols):
+        self.skill_slots = []
+        self.rows = rows
+        self.cols = cols
+        self.total_slots = self.rows * self.cols
+        # for mouse events
+        self.slots_collisions = []
+        self.append_slots()
+        # background of menu
+        #self.menu_image = "map_elements/skills_menu.png"
+    # First time slots in menu builder
+    def append_slots(self):
+        while len(self.skill_slots) != self.total_slots:
+            for x in range(1300 // 2 - ((40 + 2) * self.cols) // 2,
+                           1300 // 2 + ((40 + 2) * self.cols) // 2, 40 + 2):
+                for y in range(670, 670 + 40 * self.rows, 40 + 2):
+                    self.skill_slots.append(SkillSlot(x, y))
+                    self.slots_collisions.append(pygame.Rect(x, y, 40, 40))
+
+    def draw(self, screen):
+        #skill_menu_img = pygame.image.load("map_elements/skills_menu.png")
+        #screen.blit(skill_menu_img, (865, 370))
+        for slot in self.skill_slots:
+            slot.draw(screen)
+        for slot in self.skill_slots:
+            slot.draw_items(screen)
+
+    def add_skill(self, item, slot=None):
+        for slots in self.skill_slots:
+            slots.skill = item
+            break
 
 
 # Slots for skills in skills menu
@@ -1036,6 +1091,7 @@ class SkillSlot:
             self.image = pygame.image.load(self.skill.img).convert_alpha()
             screen.blit(self.image, (mousepos1[0] - 20, mousepos1[1] - 20))
 
+skill_quick_use = SkillsDownQuickUse(1,9)
 
 # Enemy Class
 
@@ -1109,7 +1165,8 @@ pygame.init()
 win = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Samurai no jikan")
 font = pygame.font.SysFont('arial',15,False,False)
-
+quick_use_font = pygame.font.SysFont('arial',12,False,False)
+skill_first_check = False
 # cd for attack timer
 attack_cd = time.time()
 
@@ -1139,20 +1196,31 @@ while run_pygame == "1":
         player_object_saver['player'].xp = player_object_saver['player'].xp - player_object_saver['player'].next_lvl
         player_object_saver['player'].next_lvl = round(player_object_saver['player'].next_lvl * 1.5) * player_object_saver['player'].ability_to_learn
     # Keys events
+    pos = pygame.mouse.get_pos()
+    x_mouse_pos = pos[0]
+    y_mouse_pos = pos[1]
+    mouse_collision = pygame.Rect(x_mouse_pos, y_mouse_pos, 1, 1)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_v:
                 skills_menu.toggle_skill_menu()
+            if event.key == pygame.K_1 and skill_first_check:
+                #print(skill_quick_use.skill_slots[0].skill)
+                skill_quick_use.skill_slots[0].skill.attack_collision_maker()
+               # except:
+                #    print(skill_quick_use.skill_slots[1])
+                #    print("wtf")
         if event.type == pygame.MOUSEBUTTONDOWN:
             if pygame.mouse.get_pressed(num_buttons=3)[0]:
                 pos = pygame.mouse.get_pos()
                 x_mouse_pos = pos[0]
                 y_mouse_pos = pos[1]
                 mouse_collision = pygame.Rect(x_mouse_pos, y_mouse_pos, 1, 1)
-                print(pos)
-                print(active_players)
+               # print(pos)
+                #print(active_players)
+                print(type(skill_quick_use.skill_slots[1]))
                 if mouse_collision.colliderect(skills_menu_collision):
                     skills_menu.toggle_skill_menu()
                 for i in range(len(skills_menu.slots_collisions)):
@@ -1161,7 +1229,35 @@ while run_pygame == "1":
                         skills_menu.skill_slots[i].skill.attack_collision_maker()
 
     keys = pygame.key.get_pressed()
-
+    for i in range(len(skills_menu.slots_collisions)):
+        if mouse_collision.colliderect(
+                skills_menu.slots_collisions[i]) and skills_menu.display_skills_menu == True and keys[pygame.K_1]:
+                skill_quick_use.add_skill(skills_menu.skill_slots[i].skill,1)
+                skill_first_check = True
+        if mouse_collision.colliderect(
+                skills_menu.slots_collisions[i]) and skills_menu.display_skills_menu == True and keys[pygame.K_2]:
+            skill_quick_use.add_skill(skills_menu.skill_slots[i].skill, 2)
+        if mouse_collision.colliderect(
+                skills_menu.slots_collisions[i]) and skills_menu.display_skills_menu == True and keys[pygame.K_3]:
+                skill_quick_use.add_skill(skills_menu.skill_slots[i].skill,3)
+        if mouse_collision.colliderect(
+                skills_menu.slots_collisions[i]) and skills_menu.display_skills_menu == True and keys[pygame.K_4]:
+            skill_quick_use.add_skill(skills_menu.skill_slots[i].skill, 4)
+        if mouse_collision.colliderect(
+                skills_menu.slots_collisions[i]) and skills_menu.display_skills_menu == True and keys[pygame.K_5]:
+                skill_quick_use.add_skill(skills_menu.skill_slots[i].skill,5)
+        if mouse_collision.colliderect(
+                skills_menu.slots_collisions[i]) and skills_menu.display_skills_menu == True and keys[pygame.K_6]:
+                skill_quick_use.add_skill(skills_menu.skill_slots[i].skill,6)
+        if mouse_collision.colliderect(
+                skills_menu.slots_collisions[i]) and skills_menu.display_skills_menu == True and keys[pygame.K_7]:
+                skill_quick_use.add_skill(skills_menu.skill_slots[i].skill,7)
+        if mouse_collision.colliderect(
+                skills_menu.slots_collisions[i]) and skills_menu.display_skills_menu == True and keys[pygame.K_8]:
+                skill_quick_use.add_skill(skills_menu.skill_slots[i].skill,8)
+        if mouse_collision.colliderect(
+                skills_menu.slots_collisions[i]) and skills_menu.display_skills_menu == True and keys[pygame.K_9]:
+                skill_quick_use.add_skill(skills_menu.skill_slots[i].skill,9)
     # movement right left up down events
 
     if keys[pygame.K_LEFT] or keys[pygame.K_a]:  # and int(player_class_dictionary_global["x_coordinate"]) -vel > 0:

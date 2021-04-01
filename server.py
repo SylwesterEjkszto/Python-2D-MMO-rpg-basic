@@ -111,18 +111,11 @@ def handler_client(conn, addr):
                 proper_user_name_dict["clan"].hitbox =  eval(msg_update_split[10])
                 #shit = eval(msg_update_split[10])
                 for key in enemies_respond:
-                    #print("first" + str(enemies_dictionary_update[key]["x"] - enemies_respond[key]["x"]))
-                    #print("second" + str(enemies_dictionary_update[key]["y"] - enemies_respond[key]["y"]))
                     if enemies_dictionary_update[key]["x"] - enemies_respond[key]["x"] == 3 or enemies_dictionary_update[key]["x"] - enemies_respond[key]["x"] == -3 or enemies_dictionary_update[key]["x"] - enemies_respond[key]["x"] == 0:
                         if enemies_dictionary_update[key]["y"] - enemies_respond[key]["y"] == 3 or enemies_dictionary_update[key]["y"] - enemies_respond[key]["y"] == -3 or enemies_dictionary_update[key]["y"] - enemies_respond[key]["y"] ==0:
                             enemies_dictionary_update[key]["x"] = enemies_respond[key]["x"]
                             enemies_dictionary_update[key]["y"] = enemies_respond[key]["y"]
-                    #enemies_dictionary_update[key]["x"] = enemies_respond[key]["x"]
-                    #if enemies_dictionary_update[key]["y"] - enemies_respond[key]["y"] == 3 or enemies_dictionary_update[key]["y"] - enemies_respond[key]["y"] == -3:
-                        #enemies_dictionary_update[key]["y"] = enemies_respond[key]["y"]
-                    #print(enemies_dictionary_update)
-                    #print(f"smth {enemies_respond[key]['x']}")
-                #print(msg_update_split[9])
+                    enemies_dictionary_update[key]["player_to_follow"] = enemies_respond[key]["player_to_follow"]
                 something = {"smth":"smth"}
                 conn.send(f"{username_object_for_active_player} & {something} & {enemies_dictionary_update}".encode(FORMAT))
             if msg == DISCONNECT_MESSAGE:
