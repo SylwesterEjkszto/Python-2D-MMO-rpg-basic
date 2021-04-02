@@ -28,6 +28,8 @@ class Enemy():
         self.speed = 3
         self.spawn_x = x
         self.spawn_y = y
+        self.previous_x = 0
+        self.previous_y = 0
         self.x = x
         self.y = y
         self.width = width
@@ -41,8 +43,8 @@ class Enemy():
         self.view_rect = (0,0,0,0)
         self.view = 0
         self.following = False
-        self.player_to_follow = 0
-
+        self.player_to_follow = "0"
+        self.respawn = 0
     def hitbox_update(self):
         self.collision = pygame.Rect(self.hitbox)
         self.hitbox = (
@@ -71,10 +73,13 @@ class Enemy():
     def respawn_check(self):
         if time.time() - self.respawn_timer >5 and self.live == False:
             self.live = True
+            self.previous_x = self.x
+            self.previous_y = self.y
             self.x = self.spawn_x
             self.y = self.spawn_y
             self.hp = self.max_hp
             self.following = False
+            self.respawn = 1
 
     # do this when object get hit, update live,hp and player xp
     def hit(self,attack):
@@ -86,13 +91,14 @@ class Enemy():
                 player_object_saver['player'].xp = player_object_saver['player'].xp + self.xp
                 self.live_update()
                 self.following = False
-                self.player_to_follow = 0
+                self.player_to_follow = "0"
+                self.respawn = 0
     # add enemies to list
     def collisions_append(self):
         list_of_enemies.append(self)
     # following the player method and also attack method
     def move(self):
-        if self.player_to_follow ==0:
+        if self.player_to_follow =="0":
             for key in active_players:
                 if active_players[key]["collision_rect"].colliderect(self.view):
                     self.following = True
@@ -105,15 +111,19 @@ class Enemy():
         if self.attack == False:
             if time.time() - self.attack_cd > 1.5:
                 self.attack = True
-        if self.player_to_follow != 0:
+        if self.player_to_follow != "0":
             if self.live and self.following == True:
                 if self.x-50 > active_players[self.player_to_follow]["x"]:
+                    self.previous_x = self.x
                     self.x -= self.speed
                 elif self.x + 50 < active_players[self.player_to_follow]["x"]:
+                    self.previous_x = self.x
                     self.x += self.speed
                 if self.y +50 < active_players[self.player_to_follow]["y"]:
+                    self.previous_y = self.y
                     self.y += self.speed
                 elif self.y - 50 >  active_players[self.player_to_follow]["y"]:
+                    self.previous_y = self.y
                     self.y -= self.speed
 
 
@@ -917,11 +927,12 @@ def redraw_game_window():
     # server communication
     #append directory of enemies with thins i need to send to all users
     for i in range(len(list_of_enemies)):
-        dict_of_enemies[list_of_enemies[i].name] = {"x":list_of_enemies[i].x,"y":list_of_enemies[i].y,"live":list_of_enemies[i].live,"player_to_follow":list_of_enemies[i].player_to_follow}
+        dict_of_enemies[list_of_enemies[i].name] = {"x":list_of_enemies[i].x,"y":list_of_enemies[i].y,"hp":list_of_enemies[i].hp,"player_to_follow":list_of_enemies[i].player_to_follow, "max_hp":list_of_enemies[i].max_hp,"respawn":list_of_enemies[i].respawn,"previous_x":list_of_enemies[i].previous_x,"previous_y":list_of_enemies[i].previous_y}
     #print(dict_of_enemies)
     send(
         f"update &{player_object_saver['player'].x} & {player_object_saver['player'].y} & {player_object_saver['player'].map}  & {int(player_object_saver['player'].walk_count)}  & {player_object_saver['player'].last_used_movement_direction} & {player_object_saver['player'].lvl} & {player_object_saver['player'].xp} & {player_object_saver['player'].next_lvl} & {dict_of_enemies}  & {player_object_saver['player'].hitbox}")
-
+    for i in range(len(list_of_enemies)):
+        list_of_enemies[i].respawn = 0
     server_respond_for_redraw = (client.recv(8192))
     # split the mesege for usefull directiores
     server_respond_for_redraw_split = server_respond_for_redraw.decode(FORMAT).split('&')
@@ -929,7 +940,7 @@ def redraw_game_window():
     res = ast.literal_eval(server_respond_for_redraw_split[0])
     # enemies recived from server striped for delete whitespaces and transformed into dictionary
     res_enemy = ast.literal_eval(server_respond_for_redraw_split[2].strip())
-    #print(res_enemy)
+    print(res_enemy)
     # players update
     for key in res:
         active_players[key] = res[key]
@@ -939,6 +950,7 @@ def redraw_game_window():
         list_of_enemies[i].x = res_enemy[name_of_enemy]["x"]
         list_of_enemies[i].y = res_enemy[name_of_enemy]["y"]
         list_of_enemies[i].player_to_follow = res_enemy[name_of_enemy]["player_to_follow"]
+        list_of_enemies[i].hp = res_enemy[name_of_enemy]["hp"]
         list_of_enemies[i].live = res_enemy[name_of_enemy]["live"]
 
 

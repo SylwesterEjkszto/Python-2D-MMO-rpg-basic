@@ -109,13 +109,32 @@ def handler_client(conn, addr):
                 proper_user_name_dict["clan"].last_used_movement_direction =int(msg_update_split[5])
                 enemies_respond = ast.literal_eval(msg_update_split[9].strip())
                 proper_user_name_dict["clan"].hitbox =  eval(msg_update_split[10])
-                #shit = eval(msg_update_split[10])
                 for key in enemies_respond:
-                    if enemies_dictionary_update[key]["x"] - enemies_respond[key]["x"] == 3 or enemies_dictionary_update[key]["x"] - enemies_respond[key]["x"] == -3 or enemies_dictionary_update[key]["x"] - enemies_respond[key]["x"] == 0:
-                        if enemies_dictionary_update[key]["y"] - enemies_respond[key]["y"] == 3 or enemies_dictionary_update[key]["y"] - enemies_respond[key]["y"] == -3 or enemies_dictionary_update[key]["y"] - enemies_respond[key]["y"] ==0:
-                            enemies_dictionary_update[key]["x"] = enemies_respond[key]["x"]
-                            enemies_dictionary_update[key]["y"] = enemies_respond[key]["y"]
-                    enemies_dictionary_update[key]["player_to_follow"] = enemies_respond[key]["player_to_follow"]
+                    if enemies_respond[key]["respawn"] == 1 and enemies_dictionary_update[key]["hp"] == 0:
+                        enemies_dictionary_update[key]["x"] = enemies_respond[key]["x"]
+                        enemies_dictionary_update[key]["y"] = enemies_respond[key]["y"]
+                        enemies_dictionary_update[key]["hp"] = enemies_respond[key]["max_hp"]
+                        enemies_dictionary_update[key]["live"] = True
+
+                    if enemies_dictionary_update[key]["previous_x"] != enemies_respond[key]["x"] and enemies_dictionary_update[key]["previous_y"] != enemies_respond[key]["y"] :
+                        if enemies_dictionary_update[key]["x"] - enemies_respond[key]["x"] == 3 or enemies_dictionary_update[key]["x"] - enemies_respond[key]["x"] == -3 or enemies_dictionary_update[key]["x"] - enemies_respond[key]["x"] == 0:
+                            if enemies_dictionary_update[key]["y"] - enemies_respond[key]["y"] == 3 or enemies_dictionary_update[key]["y"] - enemies_respond[key]["y"] == -3 or enemies_dictionary_update[key]["y"] - enemies_respond[key]["y"] ==0:
+                                enemies_dictionary_update[key]["x"] = enemies_respond[key]["x"]
+                                enemies_dictionary_update[key]["y"] = enemies_respond[key]["y"]
+                                enemies_dictionary_update[key]["previous_x"] = enemies_respond[key]["previous_x"]
+                                enemies_dictionary_update[key]["previous_y"] = enemies_respond[key]["previous_y"]
+                    #enemies_dictionary_update[key]["hp"] = enemies_respond[key]['hp']
+                    if enemies_dictionary_update[key]["hp"] == 0 and enemies_respond[key]['hp'] != 0:
+                        enemies_dictionary_update[key]['hp'] = 0
+                    if enemies_dictionary_update[key]['hp'] != 0:
+                        enemies_dictionary_update[key]['hp'] = enemies_respond[key]['hp']
+                    #if enemies_dictionary_update[key]["hp"] > 0 :
+                        #enemies_dictionary_update[key]["player_to_follow"] = enemies_respond[key]["player_to_follow"]
+                    if enemies_respond[key]["player_to_follow"] != "0" and enemies_respond[key]["player_to_follow"] != 0 :
+                        enemies_dictionary_update[key]["player_to_follow"] = enemies_respond[key]["player_to_follow"]
+                    if enemies_dictionary_update[key]["hp"] < 1:
+                        enemies_dictionary_update[key]["live"] = False
+                        enemies_dictionary_update[key]["player_to_follow"] = "0"
                 something = {"smth":"smth"}
                 conn.send(f"{username_object_for_active_player} & {something} & {enemies_dictionary_update}".encode(FORMAT))
             if msg == DISCONNECT_MESSAGE:
