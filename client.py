@@ -172,6 +172,7 @@ character_customization = []
 player_class_dictionary_global = {}
 #Enemies declaration
 goblin = Enemy("goblin",'assets/testmap.png',1, 1235, 580, 17, 2, 31, 57, 1, 500,5)
+goblin1 = Enemy("goblin1",'assets/testmap.png',1, 1435, 580, 17, 2, 31, 57, 1, 500,5)
 
 #npc declaration
 Hikori = Npc("Hikroi",'npc_png/first_npc.png',1,515,5,450,5,50,50,"hori")
@@ -1020,6 +1021,7 @@ def redraw_game_window():
         # Howa.collision_redbox_draw()
         Jiba.collision_redbox_draw()
         goblin.view_attack_box()
+        goblin1.view_attack_box()
         user_interface()
 
     if 1== player_object_saver['player'].map:
