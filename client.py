@@ -12,7 +12,7 @@ list_of_enemies = []
 dict_of_enemies = {}
 
 class Enemy():
-    def __init__(self,name, map_img, x, y, x_fix, y_fix, width, height, hp, xp,dmg):
+    def __init__(self,name, map_img,map_number, x, y, x_fix, y_fix, width, height, hp, xp,dmg):
         self.name = name
         self.respawn_timer = time.time()
         self.attack_cd = time.time()
@@ -21,6 +21,7 @@ class Enemy():
         self.attack_range = 0
         self.dmg = dmg
         self.map = map_img
+        self.map_number = map_number
         self.hp = hp
         self.max_hp = hp
         self.xp = xp
@@ -125,9 +126,29 @@ class Enemy():
                 elif self.y - 50 >  active_players[self.player_to_follow]["y"]:
                     self.previous_y = self.y
                     self.y -= self.speed
+list_of_npc = []
+class Npc():
+    def __init__(self,name,asset,map,x,x_fix,y,y_fix,width,height,tekst):
+        self.name = name
+        self.asset= asset
+        self.map = map
+        self.x  = x
+        self.x_fix = x_fix
+        self.y = y
+        self.y_fix = y_fix
+        self.width = width
+        self.height = height
+        self.tekst = tekst
+        self.dialogue_visibility = False
+        self.live = True
+        self.append_list_of_npc()
 
 
+    def dialogue_visibility_update(self):
+        self.dialogue_visibility = not self.dialogue_visibility
 
+    def append_list_of_npc(self):
+        list_of_npc.append(self)
 
 # permament network variables
 HEADER = 2048
@@ -136,7 +157,7 @@ FORMAT = 'utf-8'
 # usage in send() function will disconnect from serwer
 DISCONNECT_MESSAGE = "!DISCONNECT"
 # server ip adress
-SERVER = "192.168.137.1"
+SERVER ="192.168.137.1"
 ADDR = (SERVER, PORT)
 # player(account) username for further use
 username = ""
@@ -150,7 +171,10 @@ character_customization = []
 # dict for sending pickles with class object parameters
 player_class_dictionary_global = {}
 #Enemies declaration
-goblin = Enemy("goblin",'assets/testmap.png', 1235, 580, 17, 2, 31, 57, 1, 500,5)
+goblin = Enemy("goblin",'assets/testmap.png',1, 1235, 580, 17, 2, 31, 57, 1, 500,5)
+
+#npc declaration
+Hikori = Npc("Hikroi",'npc_png/first_npc.png',1,515,5,450,5,50,50,"hori")
 
 # main window setup
 WIDTH = 1280
@@ -940,7 +964,7 @@ def redraw_game_window():
     res = ast.literal_eval(server_respond_for_redraw_split[0])
     # enemies recived from server striped for delete whitespaces and transformed into dictionary
     res_enemy = ast.literal_eval(server_respond_for_redraw_split[2].strip())
-    print(res_enemy)
+    #print(res_enemy)
     # players update
     for key in res:
         active_players[key] = res[key]
@@ -986,7 +1010,13 @@ def redraw_game_window():
         player_hitbox = (player_object_saver['player'].x + 17 - cameraObject.x,
                          player_object_saver['player'].y + 11 - cameraObject.y, 29, 52)
         pygame.draw.rect(win, (255, 0, 0), player_hitbox, 2)
-        map_enemy_load(goblin)
+        for i in range(len(list_of_npc)):
+            if list_of_npc[i].map == 1:
+                map_enemy_load(list_of_npc[i])
+        for i in range(len(list_of_enemies)):
+            if list_of_enemies[i].map_number == 1:
+                map_enemy_load(list_of_enemies[i])
+        #map_enemy_load(goblin)
         # Howa.collision_redbox_draw()
         Jiba.collision_redbox_draw()
         goblin.view_attack_box()
@@ -999,11 +1029,15 @@ def redraw_game_window():
 
 # Collisions
 def collision_first_map():
+    for i in range(len(list_of_enemies)):
+        if list_of_enemies[i].map_number == 1:
+            list_of_enemies[i].hitbox_update()
+            first_map_colision_dict[list_of_enemies[i].name] = list_of_enemies[i].collision
     # goblin.hitbox = (goblin.x - cameraObject.x + 17, goblin.y - cameraObject.y + 2, 31, 57)
-    goblin.hitbox_update()
-    goblin_test = pygame.Rect(goblin.hitbox)
+    #goblin.hitbox_update()
+    #goblin_test = pygame.Rect(goblin.hitbox)
 
-    first_map_colision_dict["1"] = goblin_test
+    #first_map_colision_dict["1"] = goblin_test
     collision_maker(230, 0, 0, 0, 600, 360, first_map_colision_dict, "2")
     collision_maker(1420, 1390, 20, 15, 55, 64, first_map_colision_dict, "portal1")
     collision_maker(1470, 1390, 20, 15, 55, 64, first_map_colision_dict, "portal2")
@@ -1230,9 +1264,8 @@ while run_pygame == "1":
                 x_mouse_pos = pos[0]
                 y_mouse_pos = pos[1]
                 mouse_collision = pygame.Rect(x_mouse_pos, y_mouse_pos, 1, 1)
-               # print(pos)
+                print(pos)
                 #print(active_players)
-                print(type(skill_quick_use.skill_slots[1]))
                 if mouse_collision.colliderect(skills_menu_collision):
                     skills_menu.toggle_skill_menu()
                 for i in range(len(skills_menu.slots_collisions)):
