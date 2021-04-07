@@ -142,13 +142,18 @@ class Npc():
         self.dialogue_visibility = False
         self.live = True
         self.append_list_of_npc()
-
+        self.hitbox = 0
+        self.collision = 0
 
     def dialogue_visibility_update(self):
         self.dialogue_visibility = not self.dialogue_visibility
 
     def append_list_of_npc(self):
         list_of_npc.append(self)
+
+    def collision_maker(self):
+        self.hitbox = (self.x - cameraObject.x + self.x_fix, self.y - cameraObject.y + self.y_fix, self.width, self.height)
+        self.collision = pygame.Rect(self.hitbox)
 
 # permament network variables
 HEADER = 2048
@@ -175,7 +180,7 @@ goblin = Enemy("goblin",'assets/testmap.png',1, 1235, 580, 17, 2, 31, 57, 1, 500
 goblin1 = Enemy("goblin1",'assets/testmap.png',1, 1435, 580, 17, 2, 31, 57, 1, 500,5)
 
 #npc declaration
-Hikori = Npc("Hikroi",'npc_png/first_npc.png',1,515,5,450,5,50,50,"hori")
+Hikori = Npc("Hikroi",'npc_png/first_npc.png',1,515,17,450,11,29,52,"hori")
 
 # main window setup
 WIDTH = 1280
@@ -896,7 +901,6 @@ def blitRotateCenter(surf, image, topleft,):
     new_rect = rotated_image.get_rect(center = image.get_rect(topleft = topleft).center)
 
     surf.blit(rotated_image, new_rect.topleft)
-
 # update screen images
 def redraw_game_window():
     # background draw
@@ -1022,11 +1026,15 @@ def redraw_game_window():
         Jiba.collision_redbox_draw()
         goblin.view_attack_box()
         goblin1.view_attack_box()
+        if player_object_saver['player'].skill_used != 0:
+            print("no co jest")
+            player_object_saver['player'].skill_used.attack_draw()
         user_interface()
 
     if 1== player_object_saver['player'].map:
         first_map_draw_function()
     pygame.display.update()
+
 
 
 # Collisions
@@ -1035,11 +1043,11 @@ def collision_first_map():
         if list_of_enemies[i].map_number == 1:
             list_of_enemies[i].hitbox_update()
             first_map_colision_dict[list_of_enemies[i].name] = list_of_enemies[i].collision
-    # goblin.hitbox = (goblin.x - cameraObject.x + 17, goblin.y - cameraObject.y + 2, 31, 57)
-    #goblin.hitbox_update()
-    #goblin_test = pygame.Rect(goblin.hitbox)
 
-    #first_map_colision_dict["1"] = goblin_test
+    for i in range(len(list_of_npc)):
+        if list_of_npc[i].map ==1:
+            list_of_npc[i].collision_maker()
+            first_map_colision_dict[list_of_npc[i].name] = list_of_npc[i].collision
     collision_maker(230, 0, 0, 0, 600, 360, first_map_colision_dict, "2")
     collision_maker(1420, 1390, 20, 15, 55, 64, first_map_colision_dict, "portal1")
     collision_maker(1470, 1390, 20, 15, 55, 64, first_map_colision_dict, "portal2")
@@ -1143,8 +1151,7 @@ skill_quick_use = SkillsDownQuickUse(1,9)
 
 # Enemy Class
 
-
-
+list_of_attacks = []
 
 # Attacks
 class Attack:
@@ -1156,8 +1163,12 @@ class Attack:
         self.texture = texture
         self.img = image
         self.is_moving = False
+        self.list_of_attacks_append()
 
-    # For enginge collisions
+    def list_of_attacks_append(self):
+        list_of_attacks.append(self)
+
+    # For enginge collisions attack method firs step
     def attack_collision_maker(self):
         x_fix = (self.hitbox / 4) - 35
         y_fix = (self.hitbox / 4) - 40
@@ -1168,6 +1179,8 @@ class Attack:
                          int(parameter))
         pygame.draw.rect(win, (255, 0, 0), attack_hitbox, 2)
         attack_collision = pygame.Rect(attack_hitbox)
+        player_object_saver['player'].skill_used = self
+        print(player_object_saver['player'].skill_used)
         for i in range(len(list_of_enemies)):
             if attack_collision.colliderect(list_of_enemies[i].collision):
                 list_of_enemies[i].hit(self)
@@ -1183,7 +1196,9 @@ class Attack:
                          int(parameter))
         pygame.draw.rect(win, (255, 0, 0), attack_hitbox, 2)
 
-
+    def attack_draw(self):
+        attack_texture = pygame.image.load(self.texture)
+        win.blit(attack_texture,(player_object_saver['player'].x - cameraObject.x, player_object_saver['player'].y - cameraObject.y))
 # Attacks declarations
 Jiba = Attack(400, "Jiba", 1, "assets/jiba1.png", "icons/jiba.png")
 Howa = Attack(200, "Howa", 0, "assets/jiba.png", "icons/jiba.png")
@@ -1220,7 +1235,8 @@ attack_cd = time.time()
 
 # Variable for collision checker
 last_used_move_key = ""
-
+previous_x = 0
+previous_y = 0
 # main game loop
 while run_pygame == "1":
     clock.tick(30)
@@ -1315,8 +1331,8 @@ while run_pygame == "1":
             #if player_collision_rect.colliderect(first_map_colision_dict[key]):
             if player_object_saver['player'].collision_rect.colliderect(first_map_colision_dict[key]):
                 collision_count += 1
-                player_object_saver['player'].x += vel
         if collision_count == 0 and keys[pygame.K_RIGHT] == False:
+            previous_x = player_object_saver['player'].x
             player_object_saver['player'].x -= vel
             player_object_saver['player'].last_used_movement_direction = 1
             player_object_saver['player'].update(0.5)
@@ -1328,8 +1344,8 @@ while run_pygame == "1":
             #if player_collision_rect.colliderect(first_map_colision_dict[key]):
             if player_object_saver["player"].collision_rect.colliderect(first_map_colision_dict[key]):
                 collision_count += 1
-                player_object_saver['player'].x -= vel
         if collision_count == 0 and keys[pygame.K_LEFT] == False:
+            previous_x = player_object_saver['player'].x
             player_object_saver['player'].x += vel
             player_object_saver['player'].last_used_movement_direction = 2
             player_object_saver['player'].update(0.5)
@@ -1341,8 +1357,8 @@ while run_pygame == "1":
             #if player_collision_rect.colliderect(first_map_colision_dict[key]):
             if player_object_saver["player"].collision_rect.colliderect(first_map_colision_dict[key]):
                 collision_count += 1
-                player_object_saver['player'].y += 10
         if collision_count == 0 and keys[pygame.K_DOWN] == False:
+            previous_y = player_object_saver['player'].y
             player_object_saver['player'].y -= vel
             player_object_saver['player'].last_used_movement_direction = 4
             player_object_saver['player'].update(0.2)
@@ -1354,8 +1370,8 @@ while run_pygame == "1":
             #if player_collision_rect.colliderect(first_map_colision_dict[key]):
             if player_object_saver['player'].collision_rect.colliderect(first_map_colision_dict[key]):
                 collision_count += 1
-                player_object_saver['player'].y-= 10
         if collision_count == 0 and keys[pygame.K_UP] == False:
+            previous_y = player_object_saver['player'].y
             player_object_saver['player'].y += vel
             player_object_saver['player'].last_used_movement_direction = 3
             player_object_saver['player'].update(0.2)
@@ -1376,13 +1392,13 @@ while run_pygame == "1":
         if player_object_saver['player'].collision_rect.colliderect(first_map_colision_dict[key]):
             collision_count += 1
     if last_used_move_key == "up" and collision_count > 0:
-        player_object_saver['player'].y += 10
+        player_object_saver['player'].y = previous_y
     if last_used_move_key == "down" and collision_count > 0:
-        player_object_saver['player'].y -= 10
+        player_object_saver['player'].y = previous_y
     if last_used_move_key == "left" and collision_count > 0:
-        player_object_saver['player'].x += 10
+        player_object_saver['player'].x = previous_x
     if last_used_move_key == "right" and collision_count > 0:
-        player_object_saver['player'].x -= 10
+        player_object_saver['player'].x = previous_x
 
     # X and Y checker
     if keys[pygame.K_SPACE]:
@@ -1390,11 +1406,11 @@ while run_pygame == "1":
         # if time.time() - attack_cd > 3:  # if its been 1 second
         # attack_now = True
         # attack_cd = time.time()
-        print(player_object_saver['player'].x)
-        print(player_object_saver['player'].y)
-        print(skills_menu.skill_slots[0].skill.img)
-        print(vars(skills_menu.skill_slots[0]))
-
+        #print(player_object_saver['player'].x)
+        #print(player_object_saver['player'].y)
+        #print(skills_menu.skill_slots[0].skill.img)
+        #print(vars(skills_menu.skill_slots[0]))
+        print(player_object_saver['player'].skill_used)
     # refreshing the camera view
     slide_to(cameraObject,
              (int(player_object_saver['player'].x), player_object_saver['player'].y),
@@ -1405,6 +1421,10 @@ while run_pygame == "1":
     cameraObject.y = clamp(cameraObject.y, 0, 780)
     # window graphic update
     redraw_game_window()
-
+    if player_object_saver['player'].skill_used != 0:
+        player_object_saver['player'].skill_animation_count += 1
+        if player_object_saver['player'].skill_animation_count > 9:
+            player_object_saver['player'].skill_used = 0
+            player_object_saver['player'].skill_animation_count = 0
 send(DISCONNECT_MESSAGE)
 pygame.quit()

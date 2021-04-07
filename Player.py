@@ -31,6 +31,8 @@ class Player():
         self.walkUp = [("assets/up1.png"), ("assets/up2.png"),("assets/up3.png")]
         self.walk_count = 0
         self.collision_rect = 0
+        self.skill_used = 0
+        self.skill_animation_count = 0
     def update(self, speed):
         self.walk_count += speed
         if self.last_used_movement_direction == 1 and int(self.walk_count) >= len(self.walkLeft):
